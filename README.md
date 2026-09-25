@@ -1,1 +1,1357 @@
 # elbaremag.github.io
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kombüse — Küchenplaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    --paper: #F5F1E4;
+    --panel: #FFFFFF;
+    --ink: #26332B;
+    --ink-soft: #5B6B60;
+    --ink-faint: #8B9186;
+    --line: #D9D2BE;
+    --accent: #2C5F8A;
+    --accent-dark: #1F4A6E;
+    --accent-soft: #D9E6F0;
+    --sage: #4C6B4B;
+    --sage-soft: #E4ECE2;
+    --warn: #B23A2E;
+    --warn-soft: #F6E2DE;
+    --font-display: 'Fraunces', 'Iowan Old Style', serif;
+    --font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    --shadow: 0 1px 2px rgba(38,51,43,0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1B211C;
+      --panel: #232A23;
+      --ink: #EDEDE3;
+      --ink-soft: #AEB6A9;
+      --ink-faint: #7C857A;
+      --line: #3A4239;
+      --accent: #5B9BD5;
+      --accent-dark: #7FB3E0;
+      --accent-soft: #1E3548;
+      --sage: #8FB48C;
+      --sage-soft: #253326;
+      --warn: #E0776A;
+      --warn-soft: #3A2624;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1B211C; --panel: #232A23; --ink: #EDEDE3; --ink-soft: #AEB6A9; --ink-faint: #7C857A;
+    --line: #3A4239; --accent: #5B9BD5; --accent-dark: #7FB3E0; --accent-soft: #1E3548;
+    --sage: #8FB48C; --sage-soft: #253326; --warn: #E0776A; --warn-soft: #3A2624;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
+  button { font-family: var(--font-body); cursor: pointer; }
+  input, select { font-family: var(--font-body); }
+
+  /* ---------- Login ---------- */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 36px 32px;
+  }
+  .login-card .mark {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--accent-dark);
+    margin-bottom: 4px;
+  }
+  .brand-mark { display: block; margin-bottom: 10px; }
+  .login-error {
+    background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn);
+    font-size: 13px; padding: 8px 12px; margin: -6px 0 16px;
+  }
+  .login-card h1 { font-size: 28px; margin-bottom: 6px; }
+  .login-card p.sub { color: var(--ink-soft); margin: 0 0 24px; font-size: 14px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .field select, .field input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+    background: var(--paper); color: var(--ink); font-size: 14px;
+  }
+  .field select:focus, .field input:focus, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 18px; border: 1px solid var(--accent); background: var(--accent);
+    color: #fff; font-size: 14px; font-weight: 500; border-radius: 2px;
+  }
+  .btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+  .btn.secondary { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn.secondary:hover { border-color: var(--ink-faint); }
+  .btn.danger { background: transparent; color: var(--warn); border-color: var(--warn-soft); }
+  .btn.danger:hover { background: var(--warn-soft); }
+  .btn.small { padding: 6px 12px; font-size: 13px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .login-hint { margin-top: 18px; font-size: 12px; color: var(--ink-faint); line-height: 1.6; }
+
+  /* ---------- App shell ---------- */
+  #app { display: none; min-height: 100vh; grid-template-columns: 250px 1fr; }
+  #app.active { display: grid; }
+
+  #sidebar {
+    background: var(--panel); border-right: 1px solid var(--line);
+    padding: 20px 18px; display: flex; flex-direction: column;
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  }
+  #sidebar .mark { font-family: var(--font-display); font-style: italic; color: var(--accent-dark); font-size: 15px; }
+  .sidebar-brand { display: flex; align-items: center; gap: 8px; }
+  #sidebar h2.title { font-size: 21px; margin: 2px 0 22px; }
+  .side-section-label { font-size: 12px; color: var(--ink-faint); margin: 18px 0 8px; letter-spacing: .01em; }
+  .project-item {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    padding: 9px 10px; margin-bottom: 2px; color: var(--ink); font-size: 14px;
+    border-left: 2px solid transparent;
+  }
+  .project-item:hover { background: var(--paper); }
+  .project-item.active { background: var(--sage-soft); border-left-color: var(--sage); font-weight: 500; }
+  .sidebar-spacer { flex: 1; }
+  .user-box { border-top: 1px solid var(--line); padding-top: 14px; font-size: 13px; }
+  .user-box .name { font-weight: 600; }
+  .role-badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    margin-top: 4px; background: var(--accent-soft); color: var(--accent-dark); font-weight: 600;
+  }
+  .role-badge.viewer { background: var(--sage-soft); color: var(--sage); }
+  .role-badge.editor { background: var(--accent-soft); color: var(--accent-dark); }
+  .role-badge.lead { background: #D6EAEF; color: #1F6E82; }
+  .role-badge.admin { background: #EADFF0; color: #7A4FA0; }
+  :root[data-theme="dark"] .role-badge.admin, @media (prefers-color-scheme: dark) { }
+
+  #main { padding: 28px 36px; padding-top: calc(28px + env(safe-area-inset-top, 0px)); overflow-x: hidden; }
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 16px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 26px; }
+  .topbar .desc { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+  .tabs { display: flex; gap: 4px; margin: 22px 0 22px; border-bottom: 1px solid var(--line); }
+  .tab {
+    background: none; border: none; padding: 10px 4px; margin-right: 22px; font-size: 14px;
+    color: var(--ink-soft); border-bottom: 2px solid transparent; position: relative; top: 1px;
+  }
+  .tab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 500; }
+
+  .empty-state { padding: 60px 20px; text-align: center; color: var(--ink-soft); }
+  .empty-state h3 { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: 19px; margin-bottom: 8px; color: var(--ink); }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); margin-bottom: 22px; }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+  }
+  .panel-head h3 { font-size: 16px; font-weight: 500; }
+  .panel-head .meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+  .panel-body { padding: 16px 18px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th {
+    text-align: left; font-weight: 500; color: var(--ink-soft); font-size: 12px;
+    padding: 6px 8px; border-bottom: 1px solid var(--line);
+  }
+  tbody td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.mark-col { text-align: center; color: var(--sage); font-weight: 600; }
+  .overflow-wrap { overflow-x: auto; }
+
+  .add-row-form { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: flex-end; }
+  .add-row-form .field { margin: 0; }
+  .add-row-form .f-name { flex: 2; min-width: 160px; position: relative; }
+  .add-row-form .f-qty { width: 90px; }
+  .add-row-form .f-unit { width: 90px; }
+  .add-row-form .f-supplier { flex: 1; min-width: 130px; }
+
+  .suggest-chip {
+    position: absolute; top: 100%; left: 0; margin-top: 4px; background: var(--warn-soft);
+    color: var(--warn); border: 1px solid var(--warn); padding: 6px 10px; font-size: 12.5px;
+    z-index: 5; display: flex; align-items: center; gap: 8px; white-space: nowrap;
+  }
+  .suggest-chip button { background: none; border: none; color: var(--warn); text-decoration: underline; font-size: 12.5px; padding: 0; }
+
+  .icon-btn { background: none; border: none; color: var(--ink-faint); padding: 4px 6px; font-size: 13px; }
+  .icon-btn:hover { color: var(--warn); }
+
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 12px; background: var(--paper); border: 1px solid var(--line); padding: 3px 9px; border-radius: 10px; }
+
+  dialog {
+    border: 1px solid var(--line); padding: 0; max-width: 420px; width: 90%;
+    background: var(--panel); color: var(--ink);
+  }
+  dialog::backdrop { background: rgba(20,20,15,0.35); }
+  .dialog-head { padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .dialog-head h3 { font-size: 17px; }
+  .dialog-body { padding: 18px 20px; }
+  .dialog-actions { padding: 14px 20px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
+
+  .member-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .member-row:last-child { border-bottom: none; }
+  .member-row select { padding: 4px 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 13px; }
+
+  .aggregate-total { font-weight: 600; }
+  .supplier-list { color: var(--ink-soft); font-size: 12.5px; }
+
+  @media (max-width: 760px) {
+    #app.active { grid-template-columns: 1fr; }
+    #sidebar { position: sticky; top: 0; z-index: 10; flex-direction: row; align-items: center; padding: 12px 16px; }
+    #sidebar h2.title, .side-section-label, .sidebar-spacer, .user-box, .project-list { display: none; }
+    #main { padding: 18px; }
+  }
+
+  @media print {
+    body { background: #fff; }
+    #sidebar, .topbar .btn, .tabs, .no-print, .add-row-form, .icon-btn { display: none !important; }
+    #main { padding: 0; }
+    .panel { border: none; margin-bottom: 28px; break-inside: avoid; }
+    .panel-body { padding: 0; }
+    thead th, tbody td { border-bottom: 1px solid #999; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <svg class="brand-mark" width="52" height="52" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+      <path d="M20 13c-3 3-3 6 0 9M28 11c-3 3-3 6 0 9M36 13c-3 3-3 6 0 9" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M14 27h28v9c0 6.6-6.3 12-14 12s-14-5.4-14-12v-9z" stroke="var(--ink)" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M14 30h-4.5a3.2 3.2 0 000 6.4H14M42 30h4.5a3.2 3.2 0 010 6.4H42" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="12" y1="27" x2="44" y2="27" stroke="var(--accent)" stroke-width="2.8" stroke-linecap="round"/>
+    </svg>
+    <div class="mark">Kombüse</div>
+    <h1>Küchenplaner</h1>
+    <p class="sub">Melde dich an, um Projekte und Zutatenlisten zu bearbeiten.</p>
+    <div class="field">
+      <label for="loginUser">Konto</label>
+      <select id="loginUser"></select>
+    </div>
+    <div class="field">
+      <label for="loginPass">Passwort</label>
+      <input type="password" id="loginPass" placeholder="Passwort eingeben" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="loginError" class="login-error" style="display:none;"></div>
+    <button class="btn" style="width:100%" onclick="doLogin()">Anmelden</button>
+    <div class="login-hint">Demo-Zugänge: Anna Admin / admin123 · Paul Projektleiter / lead123 · Erik Bearbeiter / editor123 · Nina Betrachter / viewer123</div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div id="sidebar">
+    <div>
+      <div class="sidebar-brand">
+        <svg width="24" height="24" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+          <path d="M20 13c-3 3-3 6 0 9M28 11c-3 3-3 6 0 9M36 13c-3 3-3 6 0 9" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M14 27h28v9c0 6.6-6.3 12-14 12s-14-5.4-14-12v-9z" stroke="var(--ink)" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M14 30h-4.5a3.2 3.2 0 000 6.4H14M42 30h4.5a3.2 3.2 0 010 6.4H42" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="12" y1="27" x2="44" y2="27" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
+        </svg>
+        <div class="mark">Kombüse</div>
+      </div>
+      <h2 class="title">Küchenplaner</h2>
+    </div>
+    <div class="side-section-label">Projekte</div>
+    <div id="projectList" class="project-list"></div>
+    <div id="newProjectSlot"></div>
+    <div class="sidebar-spacer"></div>
+    <div class="user-box">
+      <div class="name" id="curUserName"></div>
+      <span class="role-badge" id="curUserRole"></span>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn secondary small" id="adminBtn" onclick="openUserAdmin()" style="display:none;">Verwaltung</button>
+        <button class="btn secondary small" onclick="doLogout()">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="main"></div>
+</div>
+
+<dialog id="newProjectDialog">
+  <div class="dialog-head"><h3>Neues Projekt</h3></div>
+  <div class="dialog-body">
+    <div class="field"><label for="npName">Name</label><input id="npName" type="text" placeholder="z. B. Herbstfahrt 2026"></div>
+    <div class="field" style="margin-bottom:0;"><label for="npDesc">Beschreibung (optional)</label><input id="npDesc" type="text" placeholder="Kurze Beschreibung"></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="newProjectDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="createProject()">Projekt anlegen</button>
+  </div>
+</dialog>
+
+<dialog id="confirmDialog">
+  <div class="dialog-head"><h3 id="confirmTitle">Bestätigen</h3></div>
+  <div class="dialog-body" id="confirmBody"></div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="confirmDialog.close()">Abbrechen</button>
+    <button class="btn danger" onclick="runConfirm()">Löschen</button>
+  </div>
+</dialog>
+
+<dialog id="passwordDialog">
+  <div class="dialog-head"><h3>Passwort ändern</h3></div>
+  <div class="dialog-body">
+    <div class="field" style="margin-bottom:0;"><label for="pwInput">Neues Passwort</label><input id="pwInput" type="text" onkeydown="if(event.key==='Enter')savePassword()"></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="passwordDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="savePassword()">Speichern</button>
+  </div>
+</dialog>
+
+<datalist id="unitOptions">
+  <option value="g"></option>
+  <option value="kg"></option>
+  <option value="mg"></option>
+  <option value="ml"></option>
+  <option value="l"></option>
+  <option value="EL"></option>
+  <option value="TL"></option>
+  <option value="Stk"></option>
+  <option value="Bund"></option>
+  <option value="Prise"></option>
+  <option value="Dose"></option>
+  <option value="Glas"></option>
+  <option value="Packung"></option>
+  <option value="Scheibe"></option>
+  <option value="Zehe"></option>
+  <option value="Blatt"></option>
+  <option value="Würfel"></option>
+  <option value="Tasse"></option>
+  <option value="Flasche"></option>
+</datalist>
+
+<dialog id="userAdminDialog">
+  <div class="dialog-head"><h3>Systemverwaltung</h3></div>
+  <div class="dialog-body">
+    <div class="meta" style="margin-bottom:10px;">Benutzer</div>
+    <div id="userAdminList"></div>
+    <div class="add-row-form" style="margin-top:16px;">
+      <div class="field f-name"><label>Name</label><input id="newUserName" placeholder="Name"></div>
+      <div class="field f-supplier"><label>Passwort</label><input id="newUserPassword" type="text" placeholder="Passwort"></div>
+      <div class="field f-unit"><label>Rolle</label>
+        <select id="newUserRole">
+          <option value="viewer">Betrachter</option>
+          <option value="editor">Bearbeiter</option>
+          <option value="lead">Projektleiter</option>
+          <option value="admin">Über-Admin</option>
+        </select>
+      </div>
+      <button class="btn small" onclick="addUser()">Hinzufügen</button>
+    </div>
+    <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">Alle Projekte</div>
+    <div id="allProjectsList"></div>
+
+    <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">Daten sichern &amp; wiederherstellen</div>
+    <p style="font-size:13px; color:var(--ink-soft); margin:0 0 12px;">Speichert Benutzer, Projekte, Listen und Zutaten als Datei. So gehen keine Daten verloren, selbst wenn der Browser-Speicher geleert wird oder du auf einem anderen Gerät weitermachst.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn secondary small" onclick="exportData()">Daten exportieren</button>
+      <button class="btn secondary small" onclick="document.getElementById('importFileInput').click()">Daten importieren</button>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+  <div class="dialog-actions"><button class="btn secondary" onclick="userAdminDialog.close()">Schließen</button></div>
+</dialog>
+
+<dialog id="memberDialog">
+  <div class="dialog-head"><h3>Mitglieder verwalten</h3></div>
+  <div class="dialog-body">
+    <div id="memberList"></div>
+    <div class="add-row-form" style="margin-top:16px;">
+      <div class="field f-name"><label>Benutzer hinzufügen</label>
+        <select id="addMemberSelect"></select>
+      </div>
+      <button class="btn small" onclick="addMember()">Hinzufügen</button>
+    </div>
+  </div>
+  <div class="dialog-actions"><button class="btn secondary" onclick="memberDialog.close()">Schließen</button></div>
+</dialog>
+
+<script>
+/* ================= STATE ================= */
+const STORAGE_KEY = 'kombuese-kuechenplaner-v1';
+
+function uid(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 9); }
+
+function defaultState() {
+  return {
+    users: [
+      { id: 'u_admin', name: 'Anna Admin', role: 'admin', password: 'admin123' },
+      { id: 'u_lead', name: 'Paul Projektleiter', role: 'lead', password: 'lead123' },
+      { id: 'u_editor', name: 'Erik Bearbeiter', role: 'editor', password: 'editor123' },
+      { id: 'u_viewer', name: 'Nina Betrachter', role: 'viewer', password: 'viewer123' },
+    ],
+    currentUserId: null,
+    projects: [
+      { id: 'p_demo', name: 'Sommercamp 2026', description: 'Verpflegung für 5 Tage, 24 Personen', memberIds: [
+          { userId: 'u_admin', role: 'admin' }, { userId: 'u_lead', role: 'admin' }, { userId: 'u_editor', role: 'editor' }, { userId: 'u_viewer', role: 'viewer' }
+        ] }
+    ],
+    lists: [
+      { id: 'l_demo1', projectId: 'p_demo', name: 'Frühstück Tag 1' },
+      { id: 'l_demo2', projectId: 'p_demo', name: 'Abendessen Tag 1 — Pasta' },
+    ],
+    items: [
+      { id: uid('i'), listId: 'l_demo1', name: 'Eier', qty: 24, unit: 'Stk', supplier: 'Hofladen Meyer' },
+      { id: uid('i'), listId: 'l_demo1', name: 'Butter', qty: 500, unit: 'g', supplier: 'Edeka' },
+      { id: uid('i'), listId: 'l_demo2', name: 'Butter', qty: 250, unit: 'g', supplier: 'Rewe' },
+      { id: uid('i'), listId: 'l_demo2', name: 'Spaghetti', qty: 3, unit: 'kg', supplier: 'Großmarkt' },
+    ],
+    ui: { activeProjectId: 'p_demo', activeTab: 'lists' }
+  };
+}
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      migrateState(parsed);
+      return parsed;
+    }
+  } catch (e) { /* storage unavailable — fall through */ }
+  return defaultState();
+}
+// Older saved states (from before login passwords existed) may have users
+// without a `password` field. Give those a fallback password so login still works,
+// and flag them so the UI can nudge the admin to change it.
+function migrateState(s) {
+  if (!Array.isArray(s.users)) return;
+  const knownDefaults = { u_admin: 'admin123', u_editor: 'editor123', u_viewer: 'viewer123' };
+  let changed = false;
+  s.users.forEach(u => {
+    if (!u.password) {
+      u.password = knownDefaults[u.id] || 'kombuese1';
+      u.tempPassword = true;
+      changed = true;
+    }
+  });
+  if (changed) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* ignore */ }
+  }
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+}
+
+/* ================= HELPERS ================= */
+function currentUser() { return state.users.find(u => u.id === state.currentUserId) || null; }
+function findProject(id) { return state.projects.find(p => p.id === id); }
+function findList(id) { return state.lists.find(l => l.id === id); }
+function membership(project, userId) { return project.memberIds.find(m => m.userId === userId); }
+
+function roleLabel(role) { return { admin: 'Über-Admin', lead: 'Projektleiter', editor: 'Bearbeiter', viewer: 'Betrachter' }[role] || role; }
+function projectRoleLabel(role) { return { admin: 'Projekt-Admin', editor: 'Bearbeiter', viewer: 'Betrachter' }[role] || role; }
+// Only the global Admin and Projektleiter accounts may start new projects.
+function canCreateProject(u) { return !!u && (u.role === 'admin' || u.role === 'lead'); }
+
+// Effective role of the current user inside a given project (falls back to global role for admins)
+function roleInProject(project) {
+  const u = currentUser();
+  if (!u) return null;
+  if (u.role === 'admin') return 'admin';
+  const m = membership(project, u.id);
+  return m ? m.role : null;
+}
+function canEdit(project) { const r = roleInProject(project); return r === 'admin' || r === 'editor'; }
+function isProjectAdmin(project) { return roleInProject(project) === 'admin'; }
+
+function levenshtein(a, b) {
+  a = a.toLowerCase().trim(); b = b.toLowerCase().trim();
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const d = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) d[i][0] = i;
+  for (let j = 0; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + cost);
+    }
+  }
+  return d[m][n];
+}
+function findSimilarIngredient(projectId, name) {
+  const q = name.trim();
+  if (q.length < 2) return null;
+  const names = new Set();
+  state.lists.filter(l => l.projectId === projectId).forEach(l => {
+    state.items.filter(i => i.listId === l.id).forEach(i => names.add(i.name));
+  });
+  let best = null, bestDist = Infinity;
+  names.forEach(n => {
+    if (n.toLowerCase().trim() === q.toLowerCase().trim()) return; // exact match, no suggestion needed
+    const dist = levenshtein(n, q);
+    const threshold = q.length <= 4 ? 1 : q.length <= 8 ? 2 : 3;
+    if (dist <= threshold && dist < bestDist) { best = n; bestDist = dist; }
+  });
+  return best;
+}
+
+function findSimilarSupplier(projectId, name) {
+  const q = name.trim();
+  if (q.length < 2) return null;
+  const names = new Set();
+  state.lists.filter(l => l.projectId === projectId).forEach(l => {
+    state.items.filter(i => i.listId === l.id).forEach(i => { if (i.supplier) names.add(i.supplier); });
+  });
+  const qLower = q.toLowerCase();
+  let best = null, bestDist = Infinity;
+  names.forEach(n => {
+    if (n.toLowerCase().trim() === qLower.trim()) return; // exact match, no suggestion needed
+    const dist = levenshtein(n, q);
+    const threshold = q.length <= 4 ? 1 : q.length <= 8 ? 2 : 3;
+    if (dist <= threshold && dist < bestDist) { best = n; bestDist = dist; }
+  });
+  if (best) return best;
+  // Fallback: same first three letters (e.g. "Ede" catches "Edeka" vs "Edeca"),
+  // even when the rest of the word differs too much for the fuzzy match above.
+  if (qLower.length >= 3) {
+    const prefix = qLower.slice(0, 3);
+    let prefixMatch = null, prefixDist = Infinity;
+    names.forEach(n => {
+      const nLower = n.toLowerCase().trim();
+      if (nLower === qLower.trim()) return;
+      if (nLower.slice(0, 3) === prefix) {
+        const dist = levenshtein(n, q);
+        if (dist < prefixDist) { prefixMatch = n; prefixDist = dist; }
+      }
+    });
+    if (prefixMatch) return prefixMatch;
+  }
+  return null;
+}
+function projectSupplierNames(projectId) {
+  const names = new Set();
+  state.lists.filter(l => l.projectId === projectId).forEach(l => {
+    state.items.filter(i => i.listId === l.id).forEach(i => { if (i.supplier) names.add(i.supplier); });
+  });
+  return Array.from(names).sort((a, b) => a.localeCompare(b, 'de'));
+}
+function aggregateBySupplier(projectId) {
+  const lists = state.lists.filter(l => l.projectId === projectId);
+  const listNameById = new Map(lists.map(l => [l.id, l.name]));
+  const listIds = lists.map(l => l.id);
+  const items = state.items.filter(i => listIds.includes(i.listId));
+  const map = new Map();
+  items.forEach(i => {
+    const supplier = (i.supplier || '').trim();
+    const key = supplier ? supplier.toLowerCase() : '\0none';
+    if (!map.has(key)) map.set(key, { supplier: supplier || 'Ohne Lieferant', entries: [] });
+    map.get(key).entries.push({ name: i.name, qty: i.qty, unit: i.unit, listName: listNameById.get(i.listId) || '' });
+  });
+  const groups = Array.from(map.values());
+  groups.forEach(g => g.entries.sort((a, b) => a.name.localeCompare(b.name, 'de')));
+  groups.sort((a, b) => {
+    if (a.supplier === 'Ohne Lieferant') return 1;
+    if (b.supplier === 'Ohne Lieferant') return -1;
+    return a.supplier.localeCompare(b.supplier, 'de');
+  });
+  return groups;
+}
+
+function normUnit(u) { return (u || '').trim().toLowerCase(); }
+function normName(n) { return n.trim().toLowerCase(); }
+
+function aggregateProject(projectId) {
+  const lists = state.lists.filter(l => l.projectId === projectId);
+  const listIds = lists.map(l => l.id);
+  const items = state.items.filter(i => listIds.includes(i.listId));
+  const map = new Map();
+  items.forEach(i => {
+    const key = normName(i.name) + '|' + normUnit(i.unit);
+    if (!map.has(key)) map.set(key, { name: i.name, unit: i.unit, qty: 0, suppliers: new Set(), listIds: new Set() });
+    const g = map.get(key);
+    g.qty += Number(i.qty) || 0;
+    if (i.supplier) g.suppliers.add(i.supplier);
+    g.listIds.add(i.listId);
+  });
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+}
+
+/* ================= LOGIN ================= */
+function renderLoginOptions() {
+  const sel = document.getElementById('loginUser');
+  sel.innerHTML = state.users.map(u => `<option value="${u.id}">${escapeHtml(u.name)} — ${roleLabel(u.role)}</option>`).join('');
+}
+function doLogin() {
+  const id = document.getElementById('loginUser').value;
+  const passInput = document.getElementById('loginPass');
+  const errEl = document.getElementById('loginError');
+  const pass = passInput.value;
+  const u = state.users.find(x => x.id === id);
+  if (!u || !pass || u.password !== pass) {
+    errEl.textContent = 'Falsches Passwort. Bitte erneut versuchen.';
+    errEl.style.display = 'block';
+    passInput.value = '';
+    passInput.focus();
+    return;
+  }
+  errEl.style.display = 'none';
+  state.currentUserId = id;
+  saveState();
+  passInput.value = '';
+  boot();
+}
+function doLogout() {
+  state.currentUserId = null;
+  saveState();
+  boot();
+}
+
+/* ================= RENDER: SHELL ================= */
+function boot() {
+  const u = currentUser();
+  if (!u) {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').classList.remove('active');
+    renderLoginOptions();
+    return;
+  }
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  document.getElementById('curUserName').textContent = u.name;
+  const rb = document.getElementById('curUserRole');
+  rb.textContent = roleLabel(u.role);
+  rb.className = 'role-badge ' + u.role;
+  document.getElementById('adminBtn').style.display = u.role === 'admin' ? 'inline-flex' : 'none';
+
+  if (!findProject(state.ui.activeProjectId) && state.projects.length) {
+    state.ui.activeProjectId = state.projects[0].id;
+  }
+  renderSidebar();
+  renderMain();
+}
+
+function visibleProjects() {
+  const u = currentUser();
+  if (u.role === 'admin') return state.projects;
+  return state.projects.filter(p => membership(p, u.id));
+}
+
+function renderSidebar() {
+  const u = currentUser();
+  const list = document.getElementById('projectList');
+  const projects = visibleProjects();
+  if (!projects.length) {
+    list.innerHTML = `<div style="font-size:13px; color:var(--ink-faint); padding:6px 10px;">Noch keine Projekte.</div>`;
+  } else {
+    list.innerHTML = projects.map(p => `
+      <button class="project-item ${p.id === state.ui.activeProjectId ? 'active' : ''}" onclick="selectProject('${p.id}')">${escapeHtml(p.name)}</button>
+    `).join('');
+  }
+  const slot = document.getElementById('newProjectSlot');
+  slot.innerHTML = canCreateProject(u)
+    ? `<button class="btn secondary small" style="width:100%; margin-top:8px;" onclick="promptNewProject()">+ Neues Projekt</button>`
+    : '';
+}
+
+function selectProject(id) {
+  state.ui.activeProjectId = id;
+  state.ui.activeTab = 'lists';
+  saveState();
+  renderSidebar();
+  renderMain();
+}
+
+function promptNewProject() {
+  if (!canCreateProject(currentUser())) return;
+  document.getElementById('npName').value = '';
+  document.getElementById('npDesc').value = '';
+  newProjectDialog.showModal();
+  document.getElementById('npName').focus();
+}
+function createProject() {
+  const u = currentUser();
+  if (!canCreateProject(u)) { newProjectDialog.close(); return; }
+  const nameInput = document.getElementById('npName');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); return; }
+  const desc = document.getElementById('npDesc').value.trim();
+  const p = { id: uid('p'), name, description: desc, memberIds: [{ userId: u.id, role: 'admin' }] };
+  state.projects.push(p);
+  state.ui.activeProjectId = p.id;
+  state.ui.activeTab = 'lists';
+  saveState();
+  newProjectDialog.close();
+  renderSidebar();
+  renderMain();
+}
+
+/* ================= RENDER: MAIN ================= */
+function renderMain() {
+  const main = document.getElementById('main');
+  const project = findProject(state.ui.activeProjectId);
+  if (!project) {
+    main.innerHTML = `<div class="empty-state"><h3>Noch kein Projekt ausgewählt</h3><p>Wähle links ein Projekt aus oder bitte einen Admin, dich hinzuzufügen.</p></div>`;
+    return;
+  }
+  const editable = canEdit(project);
+  const admin = isProjectAdmin(project);
+  const tab = state.ui.activeTab;
+
+  main.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1>${escapeHtml(project.name)}</h1>
+        ${project.description ? `<div class="desc">${escapeHtml(project.description)}</div>` : ''}
+      </div>
+      <div class="no-print" style="display:flex; gap:8px;">
+        <button class="btn secondary" onclick="window.print()">Drucken</button>
+        <button class="btn secondary" onclick="handleDownloadPrint()">Druckversion herunterladen</button>
+      </div>
+    </div>
+    <div class="tabs no-print">
+      <button class="tab ${tab === 'lists' ? 'active' : ''}" onclick="setTab('lists')">Listen</button>
+      <button class="tab ${tab === 'aggregate' ? 'active' : ''}" onclick="setTab('aggregate')">Gesamtliste</button>
+      <button class="tab ${tab === 'suppliers' ? 'active' : ''}" onclick="setTab('suppliers')">Lieferanten</button>
+      ${admin ? `<button class="tab ${tab === 'members' ? 'active' : ''}" onclick="setTab('members')">Mitglieder</button>` : ''}
+    </div>
+    <div id="tabContent"></div>
+  `;
+
+  if (tab === 'lists') renderListsTab(project, editable);
+  else if (tab === 'aggregate') renderAggregateTab(project);
+  else if (tab === 'suppliers') renderSuppliersTab(project);
+  else if (tab === 'members') renderMembersInline(project);
+}
+
+function setTab(t) { state.ui.activeTab = t; saveState(); renderMain(); }
+
+function renderListsTab(project, editable) {
+  const content = document.getElementById('tabContent');
+  const lists = state.lists.filter(l => l.projectId === project.id);
+
+  let html = '';
+  html += `<datalist id="supplierOptions_${project.id}">${projectSupplierNames(project.id).map(s => `<option value="${escapeHtml(s)}"></option>`).join('')}</datalist>`;
+  if (!lists.length) {
+    html += `<div class="empty-state"><h3>Noch keine Liste angelegt</h3><p>Lege eine Liste für ein Gericht oder eine Mahlzeit an, um Zutaten zu sammeln.</p></div>`;
+  }
+  lists.forEach(list => {
+    const items = state.items.filter(i => i.listId === list.id);
+    html += `
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>${escapeHtml(list.name)}</h3>
+            <div class="meta">${items.length} Zutat${items.length === 1 ? '' : 'en'}</div>
+          </div>
+          ${editable ? `<button class="icon-btn no-print" onclick="deleteList('${list.id}')" title="Liste löschen">Löschen</button>` : ''}
+        </div>
+        <div class="panel-body">
+          ${items.length ? `
+          <div class="overflow-wrap">
+          <table>
+            <thead><tr><th>Bezeichnung</th><th>Anzahl</th><th>Einheit</th><th>Gesamtmenge</th><th>Lieferant</th>${editable ? '<th></th>' : ''}</tr></thead>
+            <tbody>
+              ${items.map(i => `
+                <tr>
+                  <td>${escapeHtml(i.name)}</td>
+                  <td class="num">${i.qty}</td>
+                  <td>${escapeHtml(i.unit || '')}</td>
+                  <td class="num">${formatAmount(i.qty, i.unit)}</td>
+                  <td>${escapeHtml(i.supplier || '')}</td>
+                  ${editable ? `<td class="no-print"><button class="icon-btn" onclick="deleteItem('${i.id}')">✕</button></td>` : ''}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          </div>` : `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Zutaten.</div>`}
+
+          ${editable ? `
+          <form class="add-row-form no-print" onsubmit="return addItem(event, '${list.id}')">
+            <div class="field f-name">
+              <label>Bezeichnung</label>
+              <input type="text" required autocomplete="off" oninput="handleNameInput(this, '${project.id}')" name="name">
+              <div class="suggest-slot"></div>
+            </div>
+            <div class="field f-qty"><label>Anzahl</label><input type="number" step="any" min="0" required name="qty"></div>
+            <div class="field f-unit"><label>Einheit</label><input type="text" list="unitOptions" placeholder="g, kg, Stk …" name="unit"></div>
+            <div class="field f-supplier">
+              <label>Lieferant</label>
+              <input type="text" name="supplier" autocomplete="off" list="supplierOptions_${project.id}" oninput="handleSupplierInput(this, '${project.id}')">
+              <div class="suggest-slot"></div>
+            </div>
+            <button class="btn small" type="submit">Hinzufügen</button>
+          </form>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  if (editable) {
+    html += `
+      <form class="add-row-form no-print" onsubmit="return addList(event, '${project.id}')" style="margin-top:4px;">
+        <div class="field f-name"><label>Neue Liste (Gericht/Mahlzeit)</label><input type="text" required name="listName" placeholder="z. B. Mittagessen Tag 2"></div>
+        <button class="btn small" type="submit">Liste anlegen</button>
+      </form>
+    `;
+  }
+
+  content.innerHTML = html;
+}
+
+function handleNameInput(input, projectId) {
+  const slot = input.closest('.field').querySelector('.suggest-slot');
+  const val = input.value;
+  const suggestion = findSimilarIngredient(projectId, val);
+  if (suggestion) {
+    slot.innerHTML = `<div class="suggest-chip">Meinst du „${escapeHtml(suggestion)}“?
+      <button type="button" onclick="applySuggestion(this, '${escapeJs(suggestion)}')">Übernehmen</button></div>`;
+  } else {
+    slot.innerHTML = '';
+  }
+}
+function applySuggestion(btn, name) {
+  const input = btn.closest('.field').querySelector('input[name="name"]');
+  input.value = name;
+  btn.closest('.suggest-slot').innerHTML = '';
+  input.focus();
+}
+function handleSupplierInput(input, projectId) {
+  const slot = input.closest('.field').querySelector('.suggest-slot');
+  const val = input.value;
+  const suggestion = findSimilarSupplier(projectId, val);
+  if (suggestion) {
+    slot.innerHTML = `<div class="suggest-chip">Meinst du „${escapeHtml(suggestion)}“?
+      <button type="button" onclick="applySupplierSuggestion(this, '${escapeJs(suggestion)}')">Übernehmen</button></div>`;
+  } else {
+    slot.innerHTML = '';
+  }
+}
+function applySupplierSuggestion(btn, name) {
+  const input = btn.closest('.field').querySelector('input[name="supplier"]');
+  input.value = name;
+  btn.closest('.suggest-slot').innerHTML = '';
+  input.focus();
+}
+
+function addList(ev, projectId) {
+  ev.preventDefault();
+  const name = ev.target.listName.value.trim();
+  if (!name) return false;
+  state.lists.push({ id: uid('l'), projectId, name });
+  saveState();
+  renderMain();
+  return false;
+}
+function deleteList(listId) {
+  const list = findList(listId);
+  openConfirm(`Liste „${list ? list.name : ''}“ inklusive aller Zutaten löschen?`, () => {
+    state.items = state.items.filter(i => i.listId !== listId);
+    state.lists = state.lists.filter(l => l.id !== listId);
+    saveState();
+    renderMain();
+  });
+}
+function addItem(ev, listId) {
+  ev.preventDefault();
+  const f = ev.target;
+  const name = f.name0 ? f.name0.value : f.name.value;
+  const qty = parseFloat(f.qty.value);
+  const unit = f.unit.value.trim();
+  const supplier = f.supplier.value.trim();
+  if (!name || !name.trim() || isNaN(qty) || qty < 0) { if (qty < 0) { f.qty.focus(); alertFallback('Die Anzahl darf nicht negativ sein.'); } return false; }
+  state.items.push({ id: uid('i'), listId, name: name.trim(), qty, unit, supplier });
+  saveState();
+  renderMain();
+  return false;
+}
+function deleteItem(itemId) {
+  state.items = state.items.filter(i => i.id !== itemId);
+  saveState();
+  renderMain();
+}
+
+function renderAggregateTab(project) {
+  const content = document.getElementById('tabContent');
+  const lists = state.lists.filter(l => l.projectId === project.id);
+  const agg = aggregateProject(project.id);
+  content.innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Gesamtliste</h3>
+          <div class="meta">Alle Zutaten aus allen Listen dieses Projekts, zusammengerechnet. Kreuze zeigen, in welcher Mahlzeit/Gericht eine Zutat verwendet wird.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        ${agg.length ? `
+        <div class="overflow-wrap">
+        <table>
+          <thead><tr>
+            <th>Bezeichnung</th>
+            <th>Gesamtmenge</th>
+            <th>Lieferanten</th>
+            ${lists.map(l => `<th title="${escapeHtml(l.name)}">${escapeHtml(l.name)}</th>`).join('')}
+          </tr></thead>
+          <tbody>
+            ${agg.map(g => `
+              <tr>
+                <td>${escapeHtml(g.name)}</td>
+                <td class="num aggregate-total">${formatAmount(g.qty, g.unit)}</td>
+                <td class="supplier-list">${Array.from(g.suppliers).map(escapeHtml).join(', ') || '—'}</td>
+                ${lists.map(l => `<td class="mark-col">${g.listIds.has(l.id) ? '✕' : ''}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        </div>` : `<div class="empty-state"><h3>Noch keine Zutaten</h3><p>Sobald Listen mit Zutaten gefüllt sind, erscheint hier die zusammengefasste Einkaufsliste.</p></div>`}
+      </div>
+    </div>
+  `;
+}
+function renderSuppliersTab(project) {
+  const content = document.getElementById('tabContent');
+  const groups = aggregateBySupplier(project.id);
+  content.innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Lieferanten</h3>
+          <div class="meta">Alle Zutaten, gruppiert nach Lieferant — so siehst du auf einen Blick, was du wo einkaufen möchtest.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        ${groups.length ? groups.map(g => `
+          <div style="margin-bottom:22px;">
+            <div style="font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--accent-dark); margin-bottom:6px;">${escapeHtml(g.supplier)}</div>
+            <div class="overflow-wrap">
+            <table>
+              <thead><tr><th>Bezeichnung</th><th>Gesamtmenge</th><th>Liste</th></tr></thead>
+              <tbody>
+                ${g.entries.map(e => `
+                  <tr>
+                    <td>${escapeHtml(e.name)}</td>
+                    <td class="num">${formatAmount(e.qty, e.unit)}</td>
+                    <td>${escapeHtml(e.listName)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            </div>
+          </div>
+        `).join('') : `<div class="empty-state"><h3>Noch keine Zutaten</h3><p>Sobald Zutaten mit Lieferant eingetragen sind, erscheint hier die Einkaufsliste je Lieferant.</p></div>`}
+      </div>
+    </div>
+  `;
+}
+function roundNice(n) { return Math.round(n * 100) / 100; }
+function formatAmount(qty, unit) {
+  const n = roundNice(Number(qty) || 0);
+  return unit ? `${n} ${unit}` : `${n}`;
+}
+
+function renderMembersInline(project) {
+  const content = document.getElementById('tabContent');
+  content.innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h3>Mitglieder &amp; Rechte</h3></div>
+      <div class="panel-body">
+        <div id="memberListInline"></div>
+        <div class="add-row-form" style="margin-top:16px;">
+          <div class="field f-name"><label>Benutzer hinzufügen</label><select id="addMemberSelectInline"></select></div>
+          <button class="btn small" onclick="addMemberInline('${project.id}')">Hinzufügen</button>
+        </div>
+      </div>
+    </div>
+  `;
+  renderMemberRows(project, document.getElementById('memberListInline'));
+  const sel = document.getElementById('addMemberSelectInline');
+  const nonMembers = state.users.filter(u => !membership(project, u.id));
+  sel.innerHTML = nonMembers.length
+    ? nonMembers.map(u => `<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('')
+    : `<option value="">Alle Benutzer sind bereits Mitglied</option>`;
+}
+function renderMemberRows(project, container) {
+  container.innerHTML = project.memberIds.map(m => {
+    const u = state.users.find(x => x.id === m.userId);
+    if (!u) return '';
+    return `
+      <div class="member-row">
+        <span>${escapeHtml(u.name)}</span>
+        <span style="display:flex; align-items:center; gap:8px;">
+          <select onchange="setMemberRole('${project.id}', '${u.id}', this.value)">
+            <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>Betrachter</option>
+            <option value="editor" ${m.role === 'editor' ? 'selected' : ''}>Bearbeiter</option>
+            <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>Projekt-Admin</option>
+          </select>
+          <button class="icon-btn" onclick="removeMember('${project.id}', '${u.id}')">✕</button>
+        </span>
+      </div>`;
+  }).join('') || `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Mitglieder.</div>`;
+}
+function setMemberRole(projectId, userId, role) {
+  const p = findProject(projectId);
+  const m = membership(p, userId);
+  if (m) m.role = role;
+  saveState();
+  renderMain();
+}
+function removeMember(projectId, userId) {
+  const p = findProject(projectId);
+  p.memberIds = p.memberIds.filter(m => m.userId !== userId);
+  saveState();
+  renderMain();
+}
+function addMemberInline(projectId) {
+  const sel = document.getElementById('addMemberSelectInline');
+  const userId = sel.value;
+  if (!userId) return;
+  const p = findProject(projectId);
+  p.memberIds.push({ userId, role: 'viewer' });
+  saveState();
+  renderMain();
+}
+
+/* ================= USER ADMIN DIALOG ================= */
+function openUserAdmin() {
+  renderUserAdminList();
+  renderAllProjectsList();
+  userAdminDialog.showModal();
+}
+function renderAllProjectsList() {
+  const box = document.getElementById('allProjectsList');
+  if (!state.projects.length) {
+    box.innerHTML = `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Projekte.</div>`;
+    return;
+  }
+  box.innerHTML = state.projects.map(p => {
+    const listCount = state.lists.filter(l => l.projectId === p.id).length;
+    return `
+      <div class="member-row">
+        <span>${escapeHtml(p.name)} <span class="meta">— ${p.memberIds.length} Mitglied${p.memberIds.length === 1 ? '' : 'er'}, ${listCount} Liste${listCount === 1 ? '' : 'n'}</span></span>
+        <button class="icon-btn" onclick="deleteProjectGlobal('${p.id}')">Löschen</button>
+      </div>`;
+  }).join('');
+}
+function deleteProjectGlobal(projectId) {
+  const p = findProject(projectId);
+  if (!p) return;
+  openConfirm(`Projekt „${p.name}“ inklusive aller Listen und Zutaten unwiderruflich löschen?`, () => {
+    const listIds = state.lists.filter(l => l.projectId === projectId).map(l => l.id);
+    state.items = state.items.filter(i => !listIds.includes(i.listId));
+    state.lists = state.lists.filter(l => l.projectId !== projectId);
+    state.projects = state.projects.filter(x => x.id !== projectId);
+    if (state.ui.activeProjectId === projectId) state.ui.activeProjectId = state.projects[0]?.id || null;
+    saveState();
+    renderAllProjectsList();
+    renderSidebar();
+    renderMain();
+  });
+}
+function renderUserAdminList() {
+  const box = document.getElementById('userAdminList');
+  box.innerHTML = state.users.map(u => `
+    <div class="member-row">
+      <span>${escapeHtml(u.name)}${u.tempPassword ? ` <span style="color:var(--warn); font-size:11.5px;">(auto. Passwort — bitte ändern)</span>` : ''}</span>
+      <span style="display:flex; align-items:center; gap:8px;">
+        <select onchange="setUserRole('${u.id}', this.value)">
+          <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Betrachter</option>
+          <option value="editor" ${u.role === 'editor' ? 'selected' : ''}>Bearbeiter</option>
+          <option value="lead" ${u.role === 'lead' ? 'selected' : ''}>Projektleiter</option>
+          <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Über-Admin</option>
+        </select>
+        <button class="icon-btn" onclick="openPasswordReset('${u.id}')" title="Passwort ändern">Passwort</button>
+        ${u.id === state.currentUserId ? '' : `<button class="icon-btn" onclick="removeUser('${u.id}')">✕</button>`}
+      </span>
+    </div>
+  `).join('');
+}
+function setUserRole(userId, role) {
+  const u = state.users.find(x => x.id === userId);
+  if (u) u.role = role;
+  saveState();
+  renderUserAdminList();
+  if (userId === state.currentUserId) boot();
+}
+function removeUser(userId) {
+  if (userId === state.currentUserId) return;
+  state.users = state.users.filter(u => u.id !== userId);
+  state.projects.forEach(p => { p.memberIds = p.memberIds.filter(m => m.userId !== userId); });
+  saveState();
+  renderUserAdminList();
+}
+function addUser() {
+  const nameInput = document.getElementById('newUserName');
+  const passInput = document.getElementById('newUserPassword');
+  const roleSelect = document.getElementById('newUserRole');
+  const name = nameInput.value.trim();
+  const password = passInput.value;
+  if (!name || !password) { alertFallback('Bitte Name und Passwort angeben.'); return; }
+  state.users.push({ id: uid('u'), name, role: roleSelect.value, password });
+  nameInput.value = '';
+  passInput.value = '';
+  saveState();
+  renderUserAdminList();
+}
+
+let passwordTargetUserId = null;
+function openPasswordReset(userId) {
+  passwordTargetUserId = userId;
+  document.getElementById('pwInput').value = '';
+  passwordDialog.showModal();
+  document.getElementById('pwInput').focus();
+}
+function savePassword() {
+  const input = document.getElementById('pwInput');
+  const val = input.value;
+  if (!val) { input.focus(); return; }
+  const u = state.users.find(x => x.id === passwordTargetUserId);
+  if (u) { u.password = val; delete u.tempPassword; }
+  saveState();
+  renderUserAdminList();
+  passwordDialog.close();
+}
+
+/* ================= DATA EXPORT / IMPORT ================= */
+async function exportData() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    users: state.users,
+    projects: state.projects,
+    lists: state.lists,
+    items: state.items
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const today = new Date().toISOString().slice(0, 10);
+  const filename = `kuechenplaner-daten-${today}.json`;
+
+  if (window.claude && window.claude.use) {
+    try {
+      const downloads = await window.claude.use('downloads');
+      if (downloads) {
+        await downloads.save({ filename, data: json });
+        return;
+      }
+    } catch (e) {
+      // fall through to direct-download fallback
+    }
+  }
+  try {
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (e) {
+    console.error('Export fehlgeschlagen', e);
+  }
+}
+
+function importData(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try { parsed = JSON.parse(reader.result); }
+    catch (e) { alertFallback('Diese Datei ist kein gültiges Datenexport-Format.'); return; }
+    if (!parsed || !Array.isArray(parsed.users) || !Array.isArray(parsed.projects) || !Array.isArray(parsed.lists) || !Array.isArray(parsed.items)) {
+      alertFallback('Diese Datei enthält keine erkennbaren Küchenplaner-Daten.');
+      return;
+    }
+    openConfirm('Alle aktuellen Benutzer, Projekte, Listen und Zutaten durch den Inhalt dieser Datei ersetzen? Das kann nicht rückgängig gemacht werden.', () => {
+      const keepCurrentUser = state.currentUserId;
+      state = {
+        users: parsed.users,
+        projects: parsed.projects,
+        lists: parsed.lists,
+        items: parsed.items,
+        currentUserId: parsed.users.some(u => u.id === keepCurrentUser) ? keepCurrentUser : (parsed.users[0]?.id || null),
+        ui: { activeProjectId: parsed.projects[0]?.id || null, activeTab: 'lists' }
+      };
+      saveState();
+      userAdminDialog.close();
+      boot();
+    });
+  };
+  reader.readAsText(file);
+}
+
+// Lightweight in-page message for the rare validation error (alert() is unreliable in the artifact sandbox)
+function alertFallback(message) {
+  const el = document.createElement('div');
+  el.textContent = message;
+  el.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--warn); color:#fff; padding:10px 18px; border-radius:4px; font-size:13.5px; z-index:999; box-shadow:0 2px 8px rgba(0,0,0,.2);';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+/* ================= UTIL ================= */
+let pendingConfirm = null;
+function openConfirm(message, onYes) {
+  document.getElementById('confirmBody').textContent = message;
+  pendingConfirm = onYes;
+  confirmDialog.showModal();
+}
+function runConfirm() {
+  confirmDialog.close();
+  const cb = pendingConfirm;
+  pendingConfirm = null;
+  if (cb) cb();
+}
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+function escapeJs(str) { return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+
+/* ================= PRINT / DOWNLOAD ================= */
+function buildPrintableDocument(project, tab) {
+  const today = new Date().toLocaleDateString('de-DE');
+  const allLists = state.lists.filter(l => l.projectId === project.id);
+  let bodyHtml = '';
+  if (tab === 'aggregate') {
+    const agg = aggregateProject(project.id);
+    bodyHtml = `
+      <h2>Gesamtliste</h2>
+      <table>
+        <thead><tr>
+          <th>Bezeichnung</th><th>Gesamtmenge</th><th>Lieferanten</th>
+          ${allLists.map(l => `<th>${escapeHtml(l.name)}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${agg.map(g => `<tr>
+            <td>${escapeHtml(g.name)}</td>
+            <td class="num">${formatAmount(g.qty, g.unit)}</td>
+            <td>${Array.from(g.suppliers).map(escapeHtml).join(', ') || '—'}</td>
+            ${allLists.map(l => `<td class="mark-col">${g.listIds.has(l.id) ? '✕' : ''}</td>`).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } else if (tab === 'suppliers') {
+    const groups = aggregateBySupplier(project.id);
+    bodyHtml = groups.map(g => `
+      <h2>${escapeHtml(g.supplier)}</h2>
+      <table>
+        <thead><tr><th>Bezeichnung</th><th>Gesamtmenge</th><th>Liste</th></tr></thead>
+        <tbody>
+          ${g.entries.map(e => `<tr><td>${escapeHtml(e.name)}</td><td class="num">${formatAmount(e.qty, e.unit)}</td><td>${escapeHtml(e.listName)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    `).join('');
+  } else {
+    bodyHtml = allLists.map(list => {
+      const items = state.items.filter(i => i.listId === list.id);
+      return `
+        <h2>${escapeHtml(list.name)}</h2>
+        ${items.length ? `
+        <table>
+          <thead><tr><th>Bezeichnung</th><th>Anzahl</th><th>Einheit</th><th>Gesamtmenge</th><th>Lieferant</th></tr></thead>
+          <tbody>
+            ${items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td class="num">${i.qty}</td><td>${escapeHtml(i.unit || '')}</td><td class="num">${formatAmount(i.qty, i.unit)}</td><td>${escapeHtml(i.supplier || '')}</td></tr>`).join('')}
+          </tbody>
+        </table>` : `<p class="muted">Keine Zutaten.</p>`}
+      `;
+    }).join('');
+  }
+
+  return `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(project.name)} — ${tab === 'aggregate' ? 'Gesamtliste' : tab === 'suppliers' ? 'Lieferanten' : 'Listen'}</title>
+<style>
+  body { font-family: Georgia, 'Times New Roman', serif; color: #222; max-width: 900px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 22px; margin-bottom: 2px; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 28px; }
+  h2 { font-size: 17px; margin: 28px 0 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 6px; }
+  th { text-align: left; font-size: 12px; color: #555; border-bottom: 1px solid #999; padding: 5px 8px; }
+  td { padding: 7px 8px; border-bottom: 1px solid #ddd; }
+  td.num { text-align: right; }
+  td.mark-col { text-align: center; }
+  .muted { color: #888; font-size: 13.5px; }
+  .print-hint { margin-top: 36px; font-size: 12px; color: #999; }
+  @media print { .print-hint { display: none; } }
+</style>
+</head>
+<body>
+  <h1>${escapeHtml(project.name)}</h1>
+  <div class="meta">${tab === 'aggregate' ? 'Gesamtliste' : tab === 'suppliers' ? 'Lieferanten' : 'Zutatenlisten'} · erzeugt am ${today}</div>
+  ${bodyHtml}
+  <div class="print-hint">Diese Seite lässt sich mit Strg+P (bzw. Cmd+P) drucken.</div>
+</body>
+</html>`;
+}
+
+async function handleDownloadPrint() {
+  const project = findProject(state.ui.activeProjectId);
+  if (!project) return;
+  const tab = ['aggregate', 'suppliers'].includes(state.ui.activeTab) ? state.ui.activeTab : 'lists';
+  const html = buildPrintableDocument(project, tab);
+  const safeName = project.name.replace(/[^\p{L}\p{N}\-_]+/gu, '_').replace(/^_+|_+$/g, '') || 'projekt';
+  const tabFileLabel = tab === 'aggregate' ? 'gesamtliste' : tab === 'suppliers' ? 'lieferanten' : 'listen';
+  const filename = `${safeName}-${tabFileLabel}.html`;
+
+  if (window.claude && window.claude.use) {
+    try {
+      const downloads = await window.claude.use('downloads');
+      if (downloads) {
+        await downloads.save({ filename, data: html });
+        return;
+      }
+    } catch (e) {
+      // fall through to the direct-download fallback below
+    }
+  }
+  try {
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (e) {
+    console.error('Download fehlgeschlagen', e);
+  }
+}
+
+/* ================= INIT ================= */
+renderLoginOptions();
+boot();
+</script>
+</body>
+</html>
