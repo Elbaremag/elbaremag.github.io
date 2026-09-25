@@ -268,6 +268,7 @@
     </div>
     <div id="loginError" class="login-error" style="display:none;"></div>
     <button class="btn" style="width:100%" onclick="doLogin()">Anmelden</button>
+    <div class="login-hint">Bitte keine Passwörter benutzen, welche Sie auch im Alltag nutzen. Keine Sicherheit gewährleistet.</div>
   </div>
 </div>
 
@@ -293,6 +294,7 @@
     <div class="user-box">
       <div class="name" id="curUserName"></div>
       <span class="role-badge" id="curUserRole"></span>
+      <div id="cloudStatus" style="font-size:11.5px; margin-top:6px; color:var(--ink-faint);"></div>
       <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn secondary small" id="adminBtn" onclick="openUserAdmin()" style="display:none;">Verwaltung</button>
         <button class="btn secondary small" onclick="doLogout()">Abmelden</button>
@@ -403,9 +405,82 @@
   <div class="dialog-actions"><button class="btn secondary" onclick="memberDialog.close()">Schließen</button></div>
 </dialog>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ================= STATE ================= */
 const STORAGE_KEY = 'kombuese-kuechenplaner-v1';
+
+/* ================= SUPABASE CLOUD-SYNC (optional) =================
+   Leer lassen = App läuft rein lokal im Browser (wie bisher, localStorage).
+   Ausfüllen (siehe Setup-Anleitung) = alle Änderungen (Passwörter, Listen, …)
+   werden zusätzlich in Supabase gespeichert und beim Start von dort geladen,
+   damit alle Nutzer:innen denselben Stand sehen, egal auf welchem Gerät/Browser. */
+const SUPABASE_URL = 'https://beyjqguprnskldbnluby.supabase.co/rest/v1/';        // z.B. 'https://xxxxxxxxxxx.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJleWpxZ3Vwcm5za2xkYm5sdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMjA3NzYsImV4cCI6MjEwNTg5Njc3Nn0.u5JaeMYcYxme8NFBSUi5fKRQPMw17ba5X8R55wostRI';   // der "anon public" Key aus Supabase → Project Settings → API
+const SUPABASE_TABLE = 'kombuese_state';
+const SUPABASE_ROW_ID = 'main';
+
+let supabaseClient = null;
+if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+function cloudEnabled() { return !!supabaseClient; }
+
+function setCloudStatus(status) {
+  const el = document.getElementById('cloudStatus');
+  if (!el) return;
+  if (!cloudEnabled()) { el.textContent = ''; return; }
+  if (status === 'ok') { el.textContent = '☁ Cloud verbunden'; el.style.color = 'var(--sage)'; }
+  else if (status === 'syncing') { el.textContent = '☁ synchronisiere …'; el.style.color = 'var(--ink-faint)'; }
+  else { el.textContent = '⚠ Cloud nicht erreichbar (nur lokal gespeichert)'; el.style.color = 'var(--warn)'; }
+}
+
+let cloudSaveTimer = null;
+function pushToCloud() {
+  if (!cloudEnabled()) return;
+  setCloudStatus('syncing');
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(async () => {
+    try {
+      const { error } = await supabaseClient
+        .from(SUPABASE_TABLE)
+        .upsert({ id: SUPABASE_ROW_ID, data: state, updated_at: new Date().toISOString() });
+      if (error) throw error;
+      setCloudStatus('ok');
+    } catch (e) {
+      console.error('Cloud-Sync fehlgeschlagen', e);
+      setCloudStatus('error');
+    }
+  }, 500);
+}
+// silent = true: beim periodischen Hintergrund-Abgleich (keine Fehlermeldung, kein Neu-Rendern erzwingen falls nichts da ist)
+async function pullFromCloud(silent) {
+  if (!cloudEnabled()) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_TABLE).select('data').eq('id', SUPABASE_ROW_ID).maybeSingle();
+    if (error) throw error;
+    if (data && data.data) {
+      const incoming = data.data;
+      migrateState(incoming);
+      if (JSON.stringify(incoming) !== JSON.stringify(state)) {
+        const keepUserId = state.currentUserId;
+        state = incoming;
+        // Beim eigenen Gerät bleibt man eingeloggt, auch wenn die Cloud-Daten sonst übernommen werden.
+        if (keepUserId && state.users.some(u => u.id === keepUserId)) state.currentUserId = keepUserId;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+        boot();
+      }
+      setCloudStatus('ok');
+    } else if (!silent) {
+      // Noch keine Zeile in Supabase vorhanden — aktuellen (lokalen/Standard-)Stand einmalig hochladen.
+      pushToCloud();
+    }
+  } catch (e) {
+    console.error('Cloud-Laden fehlgeschlagen', e);
+    setCloudStatus('error');
+  }
+}
 
 function uid(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 9); }
 
@@ -470,6 +545,7 @@ function migrateState(s) {
 }
 function saveState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  pushToCloud();
 }
 
 /* ================= HELPERS ================= */
@@ -1350,6 +1426,14 @@ async function handleDownloadPrint() {
 /* ================= INIT ================= */
 renderLoginOptions();
 boot();
+if (cloudEnabled()) {
+  pullFromCloud(false);
+  // Alle 20s im Hintergrund prüfen, ob andere Nutzer:innen etwas geändert haben —
+  // aber nicht, während gerade ein Dialog offen ist (sonst würde man mitten in der Bearbeitung unterbrochen).
+  setInterval(() => {
+    if (!document.querySelector('dialog[open]')) pullFromCloud(true);
+  }, 20000);
+}
 </script>
 </body>
 </html>
