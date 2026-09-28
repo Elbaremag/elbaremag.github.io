@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kombüse — Küchenplaner</title>
+<meta name="theme-color" content="#2C5F8A">
+<meta name="description" content="Gemeinsame Küchen- und Einkaufsplanung">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kombüse">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    --paper: #F5F1E4;
+    --panel: #FFFFFF;
+    --ink: #26332B;
+    --ink-soft: #5B6B60;
+    --ink-faint: #8B9186;
+    --line: #D9D2BE;
+    --accent: #2C5F8A;
+    --accent-dark: #1F4A6E;
+    --accent-soft: #D9E6F0;
+    --sage: #4C6B4B;
+    --sage-soft: #E4ECE2;
+    --warn: #B23A2E;
+    --warn-soft: #F6E2DE;
+    --font-display: 'Fraunces', 'Iowan Old Style', serif;
+    --font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1B211C; --panel: #232A23; --ink: #EDEDE3; --ink-soft: #AEB6A9; --ink-faint: #7C857A;
+      --line: #3A4239; --accent: #5B9BD5; --accent-dark: #7FB3E0; --accent-soft: #1E3548;
+      --sage: #8FB48C; --sage-soft: #253326; --warn: #E0776A; --warn-soft: #3A2624;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
+  button { font-family: var(--font-body); cursor: pointer; }
+  input, select { font-family: var(--font-body); }
+
+  /* ---------- Vollbild-Karten: Laden / Login / Wartet ---------- */
+  .screen-center { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .login-card {
+    width: 100%; max-width: 380px; background: var(--panel);
+    border: 1px solid var(--line); padding: 36px 32px;
+  }
+  .login-card .mark { font-family: var(--font-display); font-style: italic; font-size: 15px; color: var(--accent-dark); margin-bottom: 4px; }
+  .brand-mark { display: block; margin-bottom: 10px; }
+  .login-error, .login-info {
+    font-size: 13px; padding: 8px 12px; margin: 0 0 16px; border: 1px solid;
+  }
+  .login-error { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+  .login-info { background: var(--sage-soft); color: var(--sage); border-color: var(--sage); }
+  .login-card h1 { font-size: 28px; margin-bottom: 6px; }
+  .login-card p.sub { color: var(--ink-soft); margin: 0 0 24px; font-size: 14px; }
+  .link-btn { background: none; border: none; color: var(--accent-dark); text-decoration: underline; font-size: 13px; padding: 10px 0 0; }
+  .login-hint { margin-top: 14px; font-size: 12px; color: var(--ink-faint); line-height: 1.6; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .field select, .field input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+    background: var(--paper); color: var(--ink); font-size: 14px;
+  }
+  .field select:focus, .field input:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 18px; border: 1px solid var(--accent); background: var(--accent);
+    color: #fff; font-size: 14px; font-weight: 500; border-radius: 2px;
+  }
+  .btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+  .btn.secondary { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn.secondary:hover { border-color: var(--ink-faint); }
+  .btn.danger { background: transparent; color: var(--warn); border-color: var(--warn-soft); }
+  .btn.danger:hover { background: var(--warn-soft); }
+  .btn.small { padding: 6px 12px; font-size: 13px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* ---------- App-Rahmen ---------- */
+  #app { display: none; min-height: 100vh; grid-template-columns: 250px 1fr; }
+  #app.active { display: grid; }
+  #sidebar {
+    background: var(--panel); border-right: 1px solid var(--line);
+    padding: 20px 18px; display: flex; flex-direction: column;
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  }
+  #sidebar .mark { font-family: var(--font-display); font-style: italic; color: var(--accent-dark); font-size: 15px; }
+  .sidebar-brand { display: flex; align-items: center; gap: 8px; }
+  #sidebar h2.title { font-size: 21px; margin: 2px 0 22px; }
+  .side-section-label { font-size: 12px; color: var(--ink-faint); margin: 18px 0 8px; }
+  .project-item {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    padding: 9px 10px; margin-bottom: 2px; color: var(--ink); font-size: 14px;
+    border-left: 2px solid transparent;
+  }
+  .project-item:hover { background: var(--paper); }
+  .project-item.active { background: var(--sage-soft); border-left-color: var(--sage); font-weight: 500; }
+  .sidebar-spacer { flex: 1; min-height: 16px; }
+  .user-box { border-top: 1px solid var(--line); padding-top: 14px; font-size: 13px; }
+  .user-box .name { font-weight: 600; }
+  .role-badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    margin-top: 4px; background: var(--accent-soft); color: var(--accent-dark); font-weight: 600;
+  }
+  .role-badge.viewer { background: var(--sage-soft); color: var(--sage); }
+  .role-badge.lead { background: #D6EAEF; color: #1F6E82; }
+  .role-badge.admin { background: #EADFF0; color: #7A4FA0; }
+  .role-badge.pending { background: var(--warn-soft); color: var(--warn); }
+
+  #main { padding: 28px 36px; padding-top: calc(28px + env(safe-area-inset-top, 0px)); overflow-x: hidden; }
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 16px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 26px; }
+  .topbar .desc { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+  .tabs { display: flex; gap: 4px; margin: 22px 0 22px; border-bottom: 1px solid var(--line); }
+  .tab {
+    background: none; border: none; padding: 10px 4px; margin-right: 22px; font-size: 14px;
+    color: var(--ink-soft); border-bottom: 2px solid transparent; position: relative; top: 1px;
+  }
+  .tab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 500; }
+
+  .empty-state { padding: 60px 20px; text-align: center; color: var(--ink-soft); }
+  .empty-state h3 { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: 19px; margin-bottom: 8px; color: var(--ink); }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); margin-bottom: 22px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); gap: 8px; }
+  .panel-head h3 { font-size: 16px; font-weight: 500; }
+  .panel-head .meta, .meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+  .panel-body { padding: 16px 18px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { text-align: left; font-weight: 500; color: var(--ink-soft); font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  tbody td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.mark-col { text-align: center; color: var(--sage); font-weight: 600; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+  th.mark-head { text-align: center; border-left: 1px solid var(--line); border-right: 1px solid var(--line); max-width: 110px; }
+  .overflow-wrap { overflow-x: auto; }
+  input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+  tr.done td { color: var(--ink-faint); text-decoration: line-through; }
+  tr.done td:first-child { text-decoration: none; }
+
+  .add-row-form { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: flex-end; }
+  .add-row-form .field { margin: 0; }
+  .add-row-form .f-name { flex: 2; min-width: 160px; position: relative; }
+  .add-row-form .f-qty { width: 90px; }
+  .add-row-form .f-unit { width: 90px; }
+  .add-row-form .f-supplier { flex: 1; min-width: 130px; position: relative; }
+
+  .suggest-chip {
+    position: absolute; top: 100%; left: 0; margin-top: 4px; background: var(--warn-soft);
+    color: var(--warn); border: 1px solid var(--warn); padding: 6px 10px; font-size: 12.5px;
+    z-index: 5; display: flex; align-items: center; gap: 8px; white-space: nowrap;
+  }
+  .suggest-chip button { background: none; border: none; color: var(--warn); text-decoration: underline; font-size: 12.5px; padding: 0; }
+
+  .icon-btn { background: none; border: none; color: var(--ink-faint); padding: 4px 6px; font-size: 13px; }
+  .icon-btn:hover { color: var(--accent-dark); }
+  .icon-btn.del:hover { color: var(--warn); }
+
+  dialog { border: 1px solid var(--line); padding: 0; max-width: 420px; width: 90%; background: var(--panel); color: var(--ink); }
+  dialog.wide { max-width: 600px; }
+  dialog::backdrop { background: rgba(20,20,15,0.35); }
+  .dialog-head { padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .dialog-head h3 { font-size: 17px; }
+  .dialog-body { padding: 18px 20px; }
+  .dialog-actions { padding: 14px 20px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
+  .stack-btns { display: flex; flex-direction: column; gap: 8px; }
+  .stack-btns .btn { justify-content: flex-start; }
+
+  .member-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; gap: 10px; }
+  .member-row:last-child { border-bottom: none; }
+  .member-row select { padding: 4px 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 13px; }
+  .aggregate-total { font-weight: 600; }
+  .supplier-list { color: var(--ink-soft); font-size: 12.5px; }
+  .sup-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .sup-title .name { font-family: var(--font-display); font-weight: 600; font-size: 16px; color: var(--accent-dark); }
+  .progress { font-size: 12px; color: var(--ink-faint); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 4px; font-size: 13.5px;
+    z-index: 9999; box-shadow: 0 2px 10px rgba(0,0,0,.25); display: flex; gap: 14px; align-items: center; max-width: 92vw;
+  }
+  .toast.error { background: var(--warn); color: #fff; }
+  .toast button { background: none; border: none; color: inherit; font-weight: 600; text-decoration: underline; font-size: 13.5px; padding: 0; }
+
+  .mobile-topbar { display: none; }
+  .menu-btn { background: none; border: 1px solid var(--line); color: var(--ink); font-size: 18px; line-height: 1; padding: 7px 11px; border-radius: 2px; }
+  .menu-close { display: none; }
+  .sidebar-backdrop { display: none; }
+
+  @media (max-width: 760px) {
+    #app.active { display: block; }
+    .mobile-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; padding-top: calc(10px + env(safe-area-inset-top, 0px));
+      background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20;
+    }
+    .mobile-topbar .sidebar-brand { gap: 6px; }
+    #sidebar {
+      position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; width: 82vw; max-width: 300px;
+      transform: translateX(-101%); transition: transform .22s ease;
+      box-shadow: 2px 0 20px rgba(0,0,0,.18); overflow-y: auto;
+    }
+    #sidebar.mobile-open { transform: translateX(0); }
+    .menu-close { display: block; align-self: flex-end; background: none; border: none; color: var(--ink-faint); font-size: 18px; padding: 4px 8px; margin-bottom: 6px; }
+    .sidebar-backdrop.active { display: block; position: fixed; inset: 0; background: rgba(20,20,15,.4); z-index: 25; }
+    #main { padding: 16px; }
+    .topbar h1 { font-size: 21px; }
+    .tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+    .tab { white-space: nowrap; margin-right: 16px; }
+    .add-row-form { flex-direction: column; align-items: stretch; }
+    .add-row-form .field, .add-row-form .f-name, .add-row-form .f-qty,
+    .add-row-form .f-unit, .add-row-form .f-supplier { width: 100%; min-width: 0; }
+    .add-row-form .btn { width: 100%; }
+    .panel-head { flex-wrap: wrap; }
+    dialog { max-width: none; width: 92%; max-height: 85vh; overflow-y: auto; }
+  }
+
+  @media print {
+    body { background: #fff; }
+    #sidebar, .mobile-topbar, .topbar .btn, .tabs, .no-print, .add-row-form, .icon-btn, .toast { display: none !important; }
+    #main { padding: 0; }
+    .panel { border: none; margin-bottom: 28px; break-inside: avoid; }
+    .panel-body { padding: 0; }
+    thead th, tbody td { border-bottom: 1px solid #999; }
+    td.mark-col, th.mark-head { border-left: 1px solid #555; border-right: 1px solid #555; color: #000; }
+    td.mark-col { font-size: 16px; }
+    th.mark-head { background: #eee; }
+    tbody tr:nth-child(even) td { background: #f5f5f5; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LADEN ============ -->
+<div id="loadingScreen" class="screen-center" style="display:flex;">
+  <div style="text-align:center; color:var(--ink-soft);">
+    <svg width="44" height="44" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+      <path d="M20 13c-3 3-3 6 0 9M28 11c-3 3-3 6 0 9M36 13c-3 3-3 6 0 9" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M14 27h28v9c0 6.6-6.3 12-14 12s-14-5.4-14-12v-9z" stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round"/>
+      <line x1="12" y1="27" x2="44" y2="27" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div id="loadingText" style="margin-top:10px; font-size:14px;">Kombüse wird geladen …</div>
+  </div>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen" class="screen-center">
+  <div class="login-card">
+    <svg class="brand-mark" width="52" height="52" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+      <path d="M20 13c-3 3-3 6 0 9M28 11c-3 3-3 6 0 9M36 13c-3 3-3 6 0 9" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M14 27h28v9c0 6.6-6.3 12-14 12s-14-5.4-14-12v-9z" stroke="var(--ink)" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M14 30h-4.5a3.2 3.2 0 000 6.4H14M42 30h4.5a3.2 3.2 0 010 6.4H42" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="12" y1="27" x2="44" y2="27" stroke="var(--accent)" stroke-width="2.8" stroke-linecap="round"/>
+    </svg>
+    <div class="mark">Kombüse</div>
+    <h1>Küchenplaner</h1>
+    <p class="sub">Melde dich an, um Projekte und Zutatenlisten zu bearbeiten.</p>
+    <form onsubmit="doLogin(); return false;">
+      <div class="field">
+        <label for="loginEmail">E-Mail</label>
+        <input type="email" id="loginEmail" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="loginPass">Passwort</label>
+        <input type="password" id="loginPass" autocomplete="current-password" required>
+      </div>
+      <div id="loginError" class="login-error" style="display:none;"></div>
+      <div id="loginInfo" class="login-info" style="display:none;"></div>
+      <button class="btn" style="width:100%" type="submit" id="loginBtn">Anmelden</button>
+    </form>
+    <button class="link-btn" type="button" onclick="forgotPassword()">Passwort vergessen?</button>
+    <div class="login-hint">Konten werden vom Admin angelegt. Eine Selbstregistrierung gibt es nicht.</div>
+  </div>
+</div>
+
+<!-- ============ WARTET AUF FREISCHALTUNG ============ -->
+<div id="pendingScreen" class="screen-center">
+  <div class="login-card">
+    <div class="mark">Kombüse</div>
+    <h1 style="font-size:22px;">Noch nicht freigeschaltet</h1>
+    <p class="sub" style="margin-top:8px;">Dein Konto ist angelegt, hat aber noch keinen Zugriff. Bitte den Admin, dich freizuschalten, und prüfe danach erneut.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn" onclick="recheckAccess()">Erneut prüfen</button>
+      <button class="btn secondary" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div id="mobileTopbar" class="mobile-topbar">
+    <button class="menu-btn" onclick="toggleMobileNav()" aria-label="Menü öffnen">☰</button>
+    <div class="sidebar-brand">
+      <svg width="20" height="20" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+        <path d="M20 13c-3 3-3 6 0 9M28 11c-3 3-3 6 0 9M36 13c-3 3-3 6 0 9" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M14 27h28v9c0 6.6-6.3 12-14 12s-14-5.4-14-12v-9z" stroke="var(--ink)" stroke-width="2.6" stroke-linejoin="round"/>
+        <line x1="12" y1="27" x2="44" y2="27" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
+      </svg>
+      <div class="mark" style="font-family:var(--font-display); font-style:italic; color:var(--accent-dark); font-size:15px;">Kombüse</div>
+    </div>
+    <div style="width:34px;"></div>
+  </div>
+  <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="closeMobileNav()"></div>
+
+  <div id="sidebar">
+    <button class="menu-close" onclick="closeMobileNav()" aria-label="Menü schließen">✕</button>
+    <div>
+      <div class="sidebar-brand">
+        <svg width="24" height="24" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+          <path d="M20 13c-3 3-3 6 0 9M28 11c-3 3-3 6 0 9M36 13c-3 3-3 6 0 9" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M14 27h28v9c0 6.6-6.3 12-14 12s-14-5.4-14-12v-9z" stroke="var(--ink)" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M14 30h-4.5a3.2 3.2 0 000 6.4H14M42 30h4.5a3.2 3.2 0 010 6.4H42" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="12" y1="27" x2="44" y2="27" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
+        </svg>
+        <div class="mark">Kombüse</div>
+      </div>
+      <h2 class="title">Küchenplaner</h2>
+    </div>
+    <div class="side-section-label">Projekte</div>
+    <div id="projectList"></div>
+    <div id="newProjectSlot"></div>
+    <div class="sidebar-spacer"></div>
+    <div class="user-box">
+      <div class="name" id="curUserName"></div>
+      <span class="role-badge" id="curUserRole"></span>
+      <div id="liveStatus" style="font-size:11.5px; margin-top:6px; color:var(--ink-faint);"></div>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn secondary small" id="adminBtn" onclick="openUserAdmin()" style="display:none;">Verwaltung</button>
+        <button class="btn secondary small" onclick="openPasswordDialog(false)">Passwort</button>
+        <button class="btn secondary small" onclick="doLogout()">Abmelden</button>
+        <button class="btn secondary small" id="installBtn" onclick="installApp()" style="display:none;">App installieren</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="main"></div>
+</div>
+
+<!-- ============ DIALOGE ============ -->
+<dialog id="newProjectDialog">
+  <div class="dialog-head"><h3>Neues Projekt</h3></div>
+  <div class="dialog-body">
+    <div class="field"><label for="npName">Name</label><input id="npName" type="text" placeholder="z. B. Herbstfahrt 2026"></div>
+    <div class="field" style="margin-bottom:0;"><label for="npDesc">Beschreibung (optional)</label><input id="npDesc" type="text" placeholder="Kurze Beschreibung"></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="newProjectDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="createProject()">Projekt anlegen</button>
+  </div>
+</dialog>
+
+<dialog id="editProjectDialog">
+  <div class="dialog-head"><h3>Projekt bearbeiten</h3></div>
+  <div class="dialog-body">
+    <div class="field"><label for="epName">Name</label><input id="epName" type="text"></div>
+    <div class="field" style="margin-bottom:0;"><label for="epDesc">Beschreibung (optional)</label><input id="epDesc" type="text"></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="editProjectDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="saveEditProject()">Speichern</button>
+  </div>
+</dialog>
+
+<dialog id="editListDialog">
+  <div class="dialog-head"><h3>Liste umbenennen</h3></div>
+  <div class="dialog-body">
+    <div class="field" style="margin-bottom:0;"><label for="elName">Name</label><input id="elName" type="text" onkeydown="if(event.key==='Enter')saveEditList()"></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="editListDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="saveEditList()">Speichern</button>
+  </div>
+</dialog>
+
+<dialog id="copyListDialog">
+  <div class="dialog-head"><h3>Liste kopieren</h3></div>
+  <div class="dialog-body">
+    <p style="font-size:13px; color:var(--ink-soft); margin:0 0 14px;">Kopiert die Liste samt Zutaten (ohne „gekauft“-Häkchen) — auch in ein anderes Projekt, z. B. als Vorlage.</p>
+    <div class="field"><label for="clName">Name der Kopie</label><input id="clName" type="text"></div>
+    <div class="field" style="margin-bottom:0;"><label for="clProject">In Projekt</label><select id="clProject"></select></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="copyListDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="saveCopyList()">Kopieren</button>
+  </div>
+</dialog>
+
+<dialog id="editItemDialog">
+  <div class="dialog-head"><h3>Zutat bearbeiten</h3></div>
+  <div class="dialog-body">
+    <div class="field"><label for="eiName">Bezeichnung</label><input id="eiName" type="text"></div>
+    <div class="field"><label for="eiQty">Anzahl</label><input id="eiQty" type="number" step="any" min="0"></div>
+    <div class="field"><label for="eiUnit">Einheit</label><input id="eiUnit" type="text" list="unitOptions"></div>
+    <div class="field" style="margin-bottom:0;"><label for="eiSupplier">Lieferant</label><input id="eiSupplier" type="text" list="supplierOptionsDialog"></div>
+    <datalist id="supplierOptionsDialog"></datalist>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="editItemDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="saveEditItem()">Speichern</button>
+  </div>
+</dialog>
+
+<dialog id="confirmDialog">
+  <div class="dialog-head"><h3 id="confirmTitle">Bestätigen</h3></div>
+  <div class="dialog-body" id="confirmBody"></div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="confirmDialog.close()">Abbrechen</button>
+    <button class="btn danger" id="confirmYes" onclick="runConfirm()">Löschen</button>
+  </div>
+</dialog>
+
+<dialog id="passwordDialog">
+  <div class="dialog-head"><h3 id="pwTitle">Passwort ändern</h3></div>
+  <div class="dialog-body">
+    <div class="field" style="margin-bottom:0;">
+      <label for="pwInput">Neues Passwort (mindestens 6 Zeichen)</label>
+      <input id="pwInput" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')savePassword()">
+    </div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" id="pwCancel" onclick="passwordDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="savePassword()">Speichern</button>
+  </div>
+</dialog>
+
+<dialog id="exportDialog">
+  <div class="dialog-head"><h3>Export &amp; Druck</h3></div>
+  <div class="dialog-body">
+    <div class="stack-btns">
+      <button class="btn secondary" onclick="exportDialog.close(); exportExcel()">Excel-Datei (.xlsx) — Gesamtliste, Lieferanten &amp; Listen</button>
+      <button class="btn secondary" onclick="exportDialog.close(); exportCsv()">CSV — aktuelle Ansicht (für Excel &amp; Co.)</button>
+      <button class="btn secondary" onclick="exportDialog.close(); setTimeout(() => window.print(), 100)">Drucken / als PDF speichern — aktuelle Ansicht</button>
+    </div>
+  </div>
+  <div class="dialog-actions"><button class="btn secondary" onclick="exportDialog.close()">Schließen</button></div>
+</dialog>
+
+<datalist id="unitOptions">
+  <option value="g"></option><option value="kg"></option><option value="mg"></option>
+  <option value="ml"></option><option value="cl"></option><option value="dl"></option><option value="l"></option>
+  <option value="EL"></option><option value="TL"></option><option value="Stk"></option>
+  <option value="Bund"></option><option value="Prise"></option><option value="Dose"></option>
+  <option value="Glas"></option><option value="Packung"></option><option value="Scheibe"></option>
+  <option value="Zehe"></option><option value="Blatt"></option><option value="Würfel"></option>
+  <option value="Tasse"></option><option value="Flasche"></option>
+</datalist>
+
+<dialog id="userAdminDialog" class="wide">
+  <div class="dialog-head"><h3>Systemverwaltung</h3></div>
+  <div class="dialog-body">
+    <div class="meta" style="margin-bottom:10px;">Benutzer</div>
+    <div id="userAdminList"></div>
+    <div class="meta" style="margin:18px 0 6px;">Neuen Benutzer anlegen</div>
+    <div class="add-row-form" style="margin-top:6px;">
+      <div class="field f-name"><label>Name</label><input id="newUserName" placeholder="Name"></div>
+      <div class="field f-name"><label>E-Mail</label><input id="newUserEmail" type="email" placeholder="name@beispiel.de"></div>
+      <div class="field f-supplier"><label>Start-Passwort</label><input id="newUserPassword" type="text" placeholder="min. 6 Zeichen"></div>
+      <div class="field f-unit" style="width:130px;"><label>Rolle</label>
+        <select id="newUserRole">
+          <option value="viewer">Betrachter</option>
+          <option value="editor">Bearbeiter</option>
+          <option value="lead">Projektleiter</option>
+          <option value="admin">Über-Admin</option>
+        </select>
+      </div>
+      <button class="btn small" id="createUserBtn" onclick="createUser()">Anlegen</button>
+    </div>
+
+    <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">Alle Projekte</div>
+    <div id="allProjectsList"></div>
+
+    <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">Daten sichern &amp; übernehmen</div>
+    <p style="font-size:13px; color:var(--ink-soft); margin:0 0 12px;">Sichert alle Projekte, Listen und Zutaten als Datei. Der Import legt die Inhalte als <b>neue</b> Projekte an (auch aus der alten Version der App). Mitglieder müssen danach neu zugeordnet werden.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn secondary small" onclick="exportData()">Daten exportieren</button>
+      <button class="btn secondary small" onclick="document.getElementById('importFileInput').click()">Daten importieren</button>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+  <div class="dialog-actions"><button class="btn secondary" onclick="userAdminDialog.close()">Schließen</button></div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =====================================================================
+   KONFIGURATION — hier stehen die beiden Werte aus Supabase
+   (Project Settings → API). Der "anon public"-Key darf öffentlich sein,
+   der Schutz kommt von den Zugriffsregeln (RLS) in der Datenbank.
+   ===================================================================== */
+const SUPABASE_URL = 'https://beyjqguprnskldbnluby.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJleWpxZ3Vwcm5za2xkYm5sdWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMjA3NzYsImV4cCI6MjEwNTg5Njc3Nn0.u5JaeMYcYxme8NFBSUi5fKRQPMw17ba5X8R55wostRI';
+
+if (!window.supabase) {
+  document.getElementById('loadingText').textContent =
+    'Die Verbindungs-Bibliothek konnte nicht geladen werden. Bitte Internetverbindung prüfen und Seite neu laden.';
+  throw new Error('supabase-js nicht geladen');
+}
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ================= STATE ================= */
+const db = { profiles: [], projects: [], members: [], lists: [], items: [] };
+let me = null;          // eigenes Profil {id, name, email, role}
+let started = false;    // Sitzung vollständig geladen?
+let startingFor = null; // verhindert doppelten Start
+let recoveryMode = false;
+let rtChannel = null;
+
+let ui = (() => {
+  try { return Object.assign({ projectId: null, tab: 'lists' }, JSON.parse(localStorage.getItem('kombuese-ui') || '{}')); }
+  catch (e) { return { projectId: null, tab: 'lists' }; }
+})();
+function saveUi() { try { localStorage.setItem('kombuese-ui', JSON.stringify(ui)); } catch (e) { /* ignore */ } }
+
+/* ================= HELPERS ================= */
+function uuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = [...b].map(x => x.toString(16).padStart(2, '0'));
+  return `${h.slice(0, 4).join('')}-${h.slice(4, 6).join('')}-${h.slice(6, 8).join('')}-${h.slice(8, 10).join('')}-${h.slice(10).join('')}`;
+}
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function $(id) { return document.getElementById(id); }
+function normName(n) { return String(n || '').trim().toLowerCase(); }
+
+function roleLabel(role) {
+  return { admin: 'Über-Admin', lead: 'Projektleiter', editor: 'Bearbeiter', viewer: 'Betrachter', pending: 'Gesperrt / wartet' }[role] || role;
+}
+function findProject(id) { return db.projects.find(p => p.id === id); }
+function findList(id) { return db.lists.find(l => l.id === id); }
+function profileName(id) { const p = db.profiles.find(x => x.id === id); return p ? (p.name || p.email || '—') : '—'; }
+
+function roleInProject(project) {
+  if (!me || !project) return null;
+  if (me.role === 'admin') return 'admin';
+  const m = db.members.find(x => x.project_id === project.id && x.user_id === me.id);
+  return m ? m.role : null;
+}
+function canEdit(project) { const r = roleInProject(project); return r === 'admin' || r === 'editor'; }
+function isProjectAdmin(project) { return roleInProject(project) === 'admin'; }
+function canCreateProject() { return !!me && (me.role === 'admin' || me.role === 'lead'); }
+
+function activeLists(pid) { return db.lists.filter(l => l.project_id === pid && !l.deleted_at); }
+function itemsOfList(lid) { return db.items.filter(i => i.list_id === lid && !i.deleted_at); }
+function activeItems(pid) {
+  const ids = new Set(activeLists(pid).map(l => l.id));
+  return db.items.filter(i => i.project_id === pid && !i.deleted_at && ids.has(i.list_id));
+}
+
+/* ---------- Toasts (mit optionalem „Rückgängig") ---------- */
+function toast(msg, actionLabel, actionFn, isError) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const host = document.querySelector('dialog[open]') || document.body;
+  const el = document.createElement('div');
+  el.className = 'toast' + (isError ? ' error' : '');
+  const span = document.createElement('span'); span.textContent = msg; el.appendChild(span);
+  if (actionLabel) {
+    const b = document.createElement('button'); b.textContent = actionLabel;
+    b.onclick = () => { el.remove(); if (actionFn) actionFn(); };
+    el.appendChild(b);
+  }
+  host.appendChild(el);
+  setTimeout(() => el.remove(), actionLabel ? 7000 : 3800);
+}
+function friendlyError(err) {
+  const m = (err && err.message) || String(err);
+  if (err && (err.code === '42501' || /row-level security/i.test(m))) return 'Dafür fehlt die Berechtigung.';
+  if (/Failed to fetch|NetworkError/i.test(m)) return 'Keine Verbindung zum Server.';
+  return m;
+}
+
+/* ================= EINHEITEN ================= */
+// g/kg/mg werden als Gewicht, ml/cl/dl/l als Volumen zusammengerechnet.
+const UNITS = { mg: ['mass', 0.001], g: ['mass', 1], kg: ['mass', 1000], ml: ['vol', 1], cl: ['vol', 10], dl: ['vol', 100], l: ['vol', 1000] };
+function unitInfo(u) {
+  const x = UNITS[String(u || '').trim().toLowerCase()];
+  return x ? { fam: x[0], f: x[1] } : null;
+}
+function fmtNum(n) { return (Math.round(n * 100) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 }); }
+function fmtBase(fam, base) {
+  if (fam === 'mass') {
+    if (base >= 1000) return fmtNum(base / 1000) + ' kg';
+    if (base >= 1 || base === 0) return fmtNum(base) + ' g';
+    return fmtNum(base * 1000) + ' mg';
+  }
+  if (base >= 1000) return fmtNum(base / 1000) + ' l';
+  return fmtNum(base) + ' ml';
+}
+function formatAmount(qty, unit) {
+  const q = Number(qty) || 0;
+  const info = unitInfo(unit);
+  if (info) return fmtBase(info.fam, q * info.f);
+  return unit ? `${fmtNum(q)} ${unit}` : fmtNum(q);
+}
+function groupKey(name, unit) {
+  const info = unitInfo(unit);
+  return normName(name) + '|' + (info ? info.fam : 'u:' + String(unit || '').trim().toLowerCase());
+}
+function formatGroupTotal(g) {
+  if (g.fam) return fmtBase(g.fam, g.total);
+  return g.unit ? `${fmtNum(g.total)} ${g.unit}` : fmtNum(g.total);
+}
+
+function aggregateProject(pid) {
+  const map = new Map();
+  activeItems(pid).forEach(i => {
+    const info = unitInfo(i.unit);
+    const key = groupKey(i.name, i.unit);
+    if (!map.has(key)) map.set(key, { name: i.name, unit: i.unit, fam: info ? info.fam : null, total: 0, suppliers: new Set(), listIds: new Set() });
+    const g = map.get(key);
+    g.total += (Number(i.qty) || 0) * (info ? info.f : 1);
+    if (i.supplier) g.suppliers.add(i.supplier);
+    g.listIds.add(i.list_id);
+  });
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+}
+
+function aggregateBySupplier(pid) {
+  const listNames = new Map(activeLists(pid).map(l => [l.id, l.name]));
+  const sup = new Map();
+  activeItems(pid).forEach(i => {
+    const s = (i.supplier || '').trim();
+    const skey = s ? s.toLowerCase() : '\0none';
+    if (!sup.has(skey)) sup.set(skey, { supplier: s || 'Ohne Lieferant', map: new Map() });
+    const g = sup.get(skey);
+    const info = unitInfo(i.unit);
+    const key = groupKey(i.name, i.unit);
+    if (!g.map.has(key)) g.map.set(key, { name: i.name, unit: i.unit, fam: info ? info.fam : null, total: 0, listNames: new Set(), itemIds: [], bought: true });
+    const e = g.map.get(key);
+    e.total += (Number(i.qty) || 0) * (info ? info.f : 1);
+    e.listNames.add(listNames.get(i.list_id) || '');
+    e.itemIds.push(i.id);
+    if (!i.bought) e.bought = false;
+  });
+  const groups = [...sup.values()].map(g => ({
+    supplier: g.supplier,
+    entries: [...g.map.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'))
+  }));
+  groups.sort((a, b) => {
+    if (a.supplier === 'Ohne Lieferant') return 1;
+    if (b.supplier === 'Ohne Lieferant') return -1;
+    return a.supplier.localeCompare(b.supplier, 'de');
+  });
+  return groups;
+}
+
+/* ---------- Tippfehler-Abgleich ---------- */
+function levenshtein(a, b) {
+  a = a.toLowerCase().trim(); b = b.toLowerCase().trim();
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const d = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) d[i][0] = i;
+  for (let j = 0; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    // Buchstabendreher („Melh" statt „Mehl") zählt nur als ein Fehler
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+  }
+  return d[m][n];
+}
+function projectNames(pid, field) {
+  const s = new Set();
+  activeItems(pid).forEach(i => { if (i[field]) s.add(i[field]); });
+  return [...s];
+}
+function fuzzyMatch(names, q, usePrefix) {
+  q = q.trim();
+  if (q.length < 2) return null;
+  const ql = q.toLowerCase();
+  let best = null, bestDist = Infinity;
+  names.forEach(n => {
+    if (n.toLowerCase().trim() === ql) return;
+    const dist = levenshtein(n, q);
+    const threshold = q.length <= 4 ? 1 : q.length <= 8 ? 2 : 3;
+    if (dist <= threshold && dist < bestDist) { best = n; bestDist = dist; }
+  });
+  if (best || !usePrefix || ql.length < 3) return best;
+  const prefix = ql.slice(0, 3);
+  let pm = null, pd = Infinity;
+  names.forEach(n => {
+    const nl = n.toLowerCase().trim();
+    if (nl === ql || nl.slice(0, 3) !== prefix) return;
+    const dist = levenshtein(n, q);
+    if (dist < pd) { pm = n; pd = dist; }
+  });
+  return pm;
+}
+function findSimilarIngredient(pid, name) { return fuzzyMatch(projectNames(pid, 'name'), name, false); }
+function findSimilarSupplier(pid, name) { return fuzzyMatch(projectNames(pid, 'supplier'), name, true); }
+function projectSupplierNames(pid) { return projectNames(pid, 'supplier').sort((a, b) => a.localeCompare(b, 'de')); }
+
+/* ================= DATEN LADEN ================= */
+async function fetchAll(table, orderCols) {
+  const out = [];
+  const size = 1000;
+  for (let from = 0; ; from += size) {
+    let q = sb.from(table).select('*');
+    orderCols.forEach(c => { q = q.order(c, { ascending: true }); });
+    const { data, error } = await q.range(from, from + size - 1);
+    if (error) throw error;
+    out.push(...data);
+    if (data.length < size) break;
+  }
+  return out;
+}
+async function loadAll() {
+  const [profiles, projects, members, lists, items] = await Promise.all([
+    fetchAll('profiles', ['created_at', 'id']),
+    fetchAll('projects', ['created_at', 'id']),
+    fetchAll('project_members', ['project_id', 'user_id']),
+    fetchAll('lists', ['created_at', 'id']),
+    fetchAll('items', ['created_at', 'id'])
+  ]);
+  db.profiles = profiles; db.projects = projects; db.members = members; db.lists = lists; db.items = items;
+  const mine = profiles.find(p => p.id === me.id);
+  if (mine) me = mine;
+}
+
+/* ================= ANMELDUNG ================= */
+function showScreen(name) {
+  $('loadingScreen').style.display = name === 'loading' ? 'flex' : 'none';
+  $('loginScreen').style.display = name === 'login' ? 'flex' : 'none';
+  $('pendingScreen').style.display = name === 'pending' ? 'flex' : 'none';
+  $('app').classList.toggle('active', name === 'app');
+  if (name !== 'app') closeMobileNav();
+}
+function showLoginMessage(kind, text) {
+  $('loginError').style.display = kind === 'error' ? 'block' : 'none';
+  $('loginInfo').style.display = kind === 'info' ? 'block' : 'none';
+  if (kind === 'error') $('loginError').textContent = text;
+  if (kind === 'info') $('loginInfo').textContent = text;
+}
+
+async function doLogin() {
+  const email = $('loginEmail').value.trim();
+  const pass = $('loginPass').value;
+  if (!email || !pass) { showLoginMessage('error', 'Bitte E-Mail und Passwort eingeben.'); return; }
+  const btn = $('loginBtn');
+  btn.disabled = true;
+  showLoginMessage('none');
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false;
+  if (error) {
+    showLoginMessage('error', /Invalid login credentials/i.test(error.message) ? 'E-Mail oder Passwort ist falsch.' : friendlyError(error));
+    $('loginPass').value = '';
+    return;
+  }
+  $('loginPass').value = '';
+  // Der weitere Ablauf startet über onAuthStateChange
+}
+async function forgotPassword() {
+  const email = $('loginEmail').value.trim();
+  if (!email) { showLoginMessage('error', 'Bitte oben deine E-Mail-Adresse eintragen, dann erneut auf „Passwort vergessen?“ klicken.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  if (error) { showLoginMessage('error', friendlyError(error)); return; }
+  showLoginMessage('info', 'Falls es ein Konto mit dieser Adresse gibt, wurde eine E-Mail zum Zurücksetzen gesendet.');
+}
+async function doLogout() {
+  await sb.auth.signOut();
+  stopSession();
+  showScreen('login');
+}
+function stopSession() {
+  started = false; startingFor = null; me = null; recoveryMode = false;
+  if (rtChannel) { sb.removeChannel(rtChannel); rtChannel = null; }
+  db.profiles = []; db.projects = []; db.members = []; db.lists = []; db.items = [];
+}
+
+async function onAuth(event, session) {
+  if (!session) { stopSession(); showScreen('login'); return; }
+  if (event === 'PASSWORD_RECOVERY') recoveryMode = true;
+  if (started && me && me.id === session.user.id) {
+    if (recoveryMode) { recoveryMode = false; openPasswordDialog(true); }
+    return;
+  }
+  await startSession(session);
+  if (recoveryMode) { recoveryMode = false; openPasswordDialog(true); }
+}
+async function startSession(session) {
+  if (startingFor === session.user.id) return;
+  startingFor = session.user.id;
+  showScreen('loading');
+  const { data: prof, error } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+  if (error) {
+    startingFor = null;
+    $('loadingText').textContent = 'Verbindung fehlgeschlagen: ' + friendlyError(error);
+    return;
+  }
+  me = prof || { id: session.user.id, email: session.user.email, name: session.user.email, role: 'pending' };
+  if (me.role === 'pending') { started = true; showScreen('pending'); return; }
+  try { await loadAll(); }
+  catch (e) { startingFor = null; $('loadingText').textContent = 'Daten konnten nicht geladen werden: ' + friendlyError(e); return; }
+  started = true;
+  subscribeRealtime();
+  showScreen('app');
+  renderApp();
+}
+async function recheckAccess() {
+  const { data } = await sb.auth.getSession();
+  if (!data.session) { stopSession(); showScreen('login'); return; }
+  started = false; startingFor = null;
+  await startSession(data.session);
+}
+
+/* ================= LIVE-SYNC ================= */
+function setLive(state) {
+  const el = $('liveStatus');
+  if (!el) return;
+  if (state === 'ok') { el.textContent = '● live verbunden'; el.style.color = 'var(--sage)'; }
+  else if (state === 'error') { el.textContent = '⚠ Verbindung unterbrochen'; el.style.color = 'var(--warn)'; }
+  else { el.textContent = '… verbinde'; el.style.color = 'var(--ink-faint)'; }
+}
+function subscribeRealtime() {
+  if (rtChannel) { sb.removeChannel(rtChannel); rtChannel = null; }
+  setLive('connecting');
+  const ch = sb.channel('kombuese-live');
+  ['profiles', 'projects', 'project_members', 'lists', 'items'].forEach(t => {
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, scheduleReload);
+  });
+  ch.subscribe(status => {
+    if (status === 'SUBSCRIBED') setLive('ok');
+    else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setLive('error');
+  });
+  rtChannel = ch;
+}
+
+let reloadTimer = null;
+function scheduleReload() {
+  clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(async () => {
+    if (!started || !me) return;
+    try { await loadAll(); }
+    catch (e) { console.error(e); setLive('error'); return; }
+    if (me.role === 'pending') { showScreen('pending'); return; }
+    safeRender();
+  }, 300);
+}
+// Eigene Änderung: sofort neu laden und zeichnen
+async function refresh() {
+  try { await loadAll(); }
+  catch (e) { toast('Aktualisieren fehlgeschlagen: ' + friendlyError(e), null, null, true); return; }
+  if (me.role === 'pending') { showScreen('pending'); return; }
+  renderApp();
+}
+// Fremde Änderung: nicht mitten in einer Eingabe neu zeichnen
+let renderDirty = false;
+function isBusyEditing() {
+  const ae = document.activeElement;
+  const typing = ae && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ae.tagName) && ae.closest('#main');
+  return !!typing || !!document.querySelector('dialog[open]');
+}
+function safeRender() {
+  if (isBusyEditing()) { renderDirty = true; return; }
+  renderApp();
+}
+function flushDirty() {
+  if (renderDirty && started && me && me.role !== 'pending' && !isBusyEditing()) { renderDirty = false; renderApp(); }
+}
+document.addEventListener('focusout', () => setTimeout(flushDirty, 200));
+document.addEventListener('close', () => setTimeout(flushDirty, 50), true);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && started) scheduleReload(); });
+window.addEventListener('online', () => { if (started) { subscribeRealtime(); scheduleReload(); } });
+
+// Schreibvorgang mit Fehlerbehandlung
+async function mutate(builder) {
+  const { error } = await builder;
+  if (error) { toast('Fehler: ' + friendlyError(error), null, null, true); return false; }
+  await refresh();
+  return true;
+}
+
+
+/* ================= RENDER: RAHMEN ================= */
+function visibleProjects() { return [...db.projects].sort((a, b) => a.name.localeCompare(b.name, 'de')); }
+function ensureProject() {
+  const ps = visibleProjects();
+  if (!ps.find(p => p.id === ui.projectId)) { ui.projectId = ps[0] ? ps[0].id : null; ui.tab = 'lists'; saveUi(); }
+}
+function renderApp() {
+  if (!me) return;
+  $('curUserName').textContent = me.name || me.email || '';
+  const rb = $('curUserRole'); rb.textContent = roleLabel(me.role); rb.className = 'role-badge ' + me.role;
+  $('adminBtn').style.display = me.role === 'admin' ? 'inline-flex' : 'none';
+  ensureProject();
+  renderSidebar();
+  renderMain();
+  refreshDialogs();
+}
+function refreshDialogs() {
+  if ($('userAdminDialog').open) { renderUserAdminList(); renderAllProjectsList(); }
+}
+
+function renderSidebar() {
+  const list = $('projectList');
+  const projects = visibleProjects();
+  list.innerHTML = projects.length
+    ? projects.map(p => `<button class="project-item ${p.id === ui.projectId ? 'active' : ''}" onclick="selectProject('${p.id}')">${escapeHtml(p.name)}</button>`).join('')
+    : `<div style="font-size:13px; color:var(--ink-faint); padding:6px 10px;">Noch keine Projekte.</div>`;
+  $('newProjectSlot').innerHTML = canCreateProject()
+    ? `<button class="btn secondary small" style="width:100%; margin-top:8px;" onclick="promptNewProject()">+ Neues Projekt</button>`
+    : '';
+}
+function selectProject(id) { ui.projectId = id; ui.tab = 'lists'; saveUi(); renderSidebar(); renderMain(); closeMobileNav(); }
+function setTab(t) { ui.tab = t; saveUi(); renderMain(); }
+
+function toggleMobileNav() { $('sidebar').classList.toggle('mobile-open'); $('sidebarBackdrop').classList.toggle('active'); }
+function closeMobileNav() { $('sidebar').classList.remove('mobile-open'); $('sidebarBackdrop').classList.remove('active'); }
+
+/* ================= RENDER: HAUPTBEREICH ================= */
+let pendingFocusListId = null;
+
+function renderMain() {
+  const main = $('main');
+  const project = findProject(ui.projectId);
+  if (!project) {
+    main.innerHTML = `<div class="empty-state"><h3>Noch kein Projekt vorhanden</h3><p>${canCreateProject() ? 'Lege links ein neues Projekt an.' : 'Bitte einen Projektleiter oder Admin, dich zu einem Projekt hinzuzufügen.'}</p></div>`;
+    return;
+  }
+  const editable = canEdit(project);
+  const admin = isProjectAdmin(project);
+  if (ui.tab === 'members' && !admin) ui.tab = 'lists';
+  if (ui.tab === 'trash' && !editable) ui.tab = 'lists';
+  const tab = ui.tab;
+  const trashCount = editable
+    ? db.lists.filter(l => l.project_id === project.id && l.deleted_at).length + trashedItems(project.id).length
+    : 0;
+
+  main.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1>${escapeHtml(project.name)} ${admin ? `<button class="icon-btn no-print" style="font-size:15px; vertical-align:middle;" onclick="openEditProject('${project.id}')" title="Projekt bearbeiten">✎</button>` : ''}</h1>
+        ${project.description ? `<div class="desc">${escapeHtml(project.description)}</div>` : ''}
+      </div>
+      <div class="no-print"><button class="btn secondary" onclick="exportDialog.showModal()">Export &amp; Druck</button></div>
+    </div>
+    <div class="tabs no-print">
+      <button class="tab ${tab === 'lists' ? 'active' : ''}" onclick="setTab('lists')">Listen</button>
+      <button class="tab ${tab === 'aggregate' ? 'active' : ''}" onclick="setTab('aggregate')">Gesamtliste</button>
+      <button class="tab ${tab === 'suppliers' ? 'active' : ''}" onclick="setTab('suppliers')">Lieferanten</button>
+      ${admin ? `<button class="tab ${tab === 'members' ? 'active' : ''}" onclick="setTab('members')">Mitglieder</button>` : ''}
+      ${editable ? `<button class="tab ${tab === 'trash' ? 'active' : ''}" onclick="setTab('trash')">Papierkorb${trashCount ? ' (' + trashCount + ')' : ''}</button>` : ''}
+    </div>
+    <div id="tabContent"></div>
+  `;
+
+  if (tab === 'lists') renderListsTab(project, editable);
+  else if (tab === 'aggregate') renderAggregateTab(project);
+  else if (tab === 'suppliers') renderSuppliersTab(project, editable);
+  else if (tab === 'members') renderMembersTab(project);
+  else if (tab === 'trash') renderTrashTab(project);
+
+  if (pendingFocusListId) {
+    const f = document.querySelector(`form[data-list="${pendingFocusListId}"] input[name="name"]`);
+    if (f) f.focus();
+    pendingFocusListId = null;
+  }
+}
+
+function renderListsTab(project, editable) {
+  const lists = activeLists(project.id);
+  let html = `<datalist id="supplierOptions">${projectSupplierNames(project.id).map(s => `<option value="${escapeHtml(s)}"></option>`).join('')}</datalist>`;
+  if (!lists.length) {
+    html += `<div class="empty-state"><h3>Noch keine Liste angelegt</h3><p>Lege eine Liste für ein Gericht oder eine Mahlzeit an, um Zutaten zu sammeln.</p></div>`;
+  }
+  lists.forEach(list => {
+    const items = itemsOfList(list.id);
+    html += `
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>${escapeHtml(list.name)}</h3>
+            <div class="meta">${items.length} Zutat${items.length === 1 ? '' : 'en'}</div>
+          </div>
+          ${editable ? `<div class="no-print" style="white-space:nowrap;">
+            <button class="icon-btn" onclick="openEditList('${list.id}')" title="Liste umbenennen">✎ Umbenennen</button>
+            <button class="icon-btn" onclick="openCopyList('${list.id}')" title="Liste kopieren">⧉ Kopieren</button>
+            <button class="icon-btn del" onclick="deleteList('${list.id}')" title="Liste löschen">Löschen</button>
+          </div>` : ''}
+        </div>
+        <div class="panel-body">
+          ${items.length ? `
+          <div class="overflow-wrap">
+          <table>
+            <thead><tr><th>Bezeichnung</th><th>Anzahl</th><th>Einheit</th><th>Gesamtmenge</th><th>Lieferant</th>${editable ? '<th></th>' : ''}</tr></thead>
+            <tbody>
+              ${items.map(i => `
+                <tr>
+                  <td>${escapeHtml(i.name)}</td>
+                  <td class="num">${fmtNum(Number(i.qty))}</td>
+                  <td>${escapeHtml(i.unit || '')}</td>
+                  <td class="num">${escapeHtml(formatAmount(i.qty, i.unit))}</td>
+                  <td>${escapeHtml(i.supplier || '')}</td>
+                  ${editable ? `<td class="no-print" style="white-space:nowrap;"><button class="icon-btn" onclick="openEditItem('${i.id}')" title="Zutat bearbeiten">✎</button><button class="icon-btn del" onclick="deleteItem('${i.id}')" title="Zutat löschen">✕</button></td>` : ''}
+                </tr>`).join('')}
+            </tbody>
+          </table>
+          </div>` : `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Zutaten.</div>`}
+
+          ${editable ? `
+          <form class="add-row-form no-print" data-list="${list.id}" onsubmit="return addItem(event, '${list.id}')">
+            <div class="field f-name">
+              <label>Bezeichnung</label>
+              <input type="text" required autocomplete="off" name="name" oninput="handleSuggest(this, '${project.id}', 'name')">
+              <div class="suggest-slot"></div>
+            </div>
+            <div class="field f-qty"><label>Anzahl</label><input type="number" step="any" min="0" required name="qty" inputmode="decimal"></div>
+            <div class="field f-unit"><label>Einheit</label><input type="text" list="unitOptions" placeholder="g, kg, Stk …" name="unit"></div>
+            <div class="field f-supplier">
+              <label>Lieferant</label>
+              <input type="text" name="supplier" autocomplete="off" list="supplierOptions" oninput="handleSuggest(this, '${project.id}', 'supplier')">
+              <div class="suggest-slot"></div>
+            </div>
+            <button class="btn small" type="submit">Hinzufügen</button>
+          </form>` : ''}
+        </div>
+      </div>`;
+  });
+  if (editable) {
+    html += `
+      <form class="add-row-form no-print" onsubmit="return addList(event, '${project.id}')" style="margin-top:4px;">
+        <div class="field f-name"><label>Neue Liste (Gericht/Mahlzeit)</label><input type="text" required name="listName" placeholder="z. B. Mittagessen Tag 2"></div>
+        <button class="btn small" type="submit">Liste anlegen</button>
+      </form>`;
+  }
+  $('tabContent').innerHTML = html;
+}
+
+function renderAggregateTab(project) {
+  const lists = activeLists(project.id);
+  const agg = aggregateProject(project.id);
+  $('tabContent').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><div>
+        <h3>Gesamtliste</h3>
+        <div class="meta">Alle Zutaten aus allen Listen, zusammengerechnet (g/kg und ml/l werden umgerechnet). Kreuze zeigen, in welcher Mahlzeit eine Zutat vorkommt.</div>
+      </div></div>
+      <div class="panel-body">
+        ${agg.length ? `
+        <div class="overflow-wrap"><table>
+          <thead><tr>
+            <th>Bezeichnung</th><th>Gesamtmenge</th><th>Lieferanten</th>
+            ${lists.map(l => `<th class="mark-head" title="${escapeHtml(l.name)}">${escapeHtml(l.name)}</th>`).join('')}
+          </tr></thead>
+          <tbody>
+            ${agg.map(g => `<tr>
+              <td>${escapeHtml(g.name)}</td>
+              <td class="num aggregate-total">${escapeHtml(formatGroupTotal(g))}</td>
+              <td class="supplier-list">${[...g.suppliers].map(escapeHtml).join(', ') || '—'}</td>
+              ${lists.map(l => `<td class="mark-col">${g.listIds.has(l.id) ? '✕' : ''}</td>`).join('')}
+            </tr>`).join('')}
+          </tbody>
+        </table></div>` : `<div class="empty-state"><h3>Noch keine Zutaten</h3><p>Sobald Listen mit Zutaten gefüllt sind, erscheint hier die zusammengefasste Einkaufsliste.</p></div>`}
+      </div>
+    </div>`;
+}
+
+function renderSuppliersTab(project, editable) {
+  const groups = aggregateBySupplier(project.id);
+  const anyBought = groups.some(g => g.entries.some(e => e.bought));
+  $('tabContent').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Lieferanten &amp; Einkauf</h3>
+          <div class="meta">Alle Zutaten je Lieferant. ${editable ? 'Beim Einkaufen einfach abhaken — alle sehen den Stand sofort.' : ''}</div>
+        </div>
+        ${editable && anyBought ? `<button class="btn secondary small no-print" onclick="resetBought('${project.id}')">Häkchen zurücksetzen</button>` : ''}
+      </div>
+      <div class="panel-body">
+        ${groups.length ? groups.map(g => {
+          const done = g.entries.filter(e => e.bought).length;
+          return `
+          <div style="margin-bottom:22px;">
+            <div class="sup-title"><span class="name">${escapeHtml(g.supplier)}</span><span class="progress">${done} / ${g.entries.length} gekauft</span></div>
+            <div class="overflow-wrap"><table>
+              <thead><tr><th style="width:34px;"></th><th>Bezeichnung</th><th>Gesamtmenge</th><th>Liste(n)</th></tr></thead>
+              <tbody>
+                ${g.entries.map(e => `
+                  <tr class="${e.bought ? 'done' : ''}">
+                    <td><input type="checkbox" ${e.bought ? 'checked' : ''} ${editable ? '' : 'disabled'} onchange="toggleBought('${e.itemIds.join(',')}', this.checked)" aria-label="gekauft"></td>
+                    <td>${escapeHtml(e.name)}</td>
+                    <td class="num">${escapeHtml(formatGroupTotal(e))}</td>
+                    <td class="supplier-list">${[...e.listNames].map(escapeHtml).join(', ')}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table></div>
+          </div>`;
+        }).join('') : `<div class="empty-state"><h3>Noch keine Zutaten</h3><p>Sobald Zutaten mit Lieferant eingetragen sind, erscheint hier die Einkaufsliste je Lieferant.</p></div>`}
+      </div>
+    </div>`;
+}
+
+function renderMembersTab(project) {
+  const members = db.members.filter(m => m.project_id === project.id);
+  const memberIds = new Set(members.map(m => m.user_id));
+  const candidates = db.profiles.filter(p => p.role !== 'pending' && !memberIds.has(p.id))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
+  $('tabContent').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h3>Mitglieder &amp; Rechte</h3></div>
+      <div class="panel-body">
+        ${members.map(m => `
+          <div class="member-row">
+            <span>${escapeHtml(profileName(m.user_id))}</span>
+            <span style="display:flex; align-items:center; gap:8px;">
+              <select onchange="setMemberRole('${project.id}', '${m.user_id}', this.value)">
+                <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>Betrachter</option>
+                <option value="editor" ${m.role === 'editor' ? 'selected' : ''}>Bearbeiter</option>
+                <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>Projekt-Admin</option>
+              </select>
+              <button class="icon-btn del" onclick="removeMember('${project.id}', '${m.user_id}')" title="Entfernen">✕</button>
+            </span>
+          </div>`).join('') || `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Mitglieder.</div>`}
+        <div class="add-row-form" style="margin-top:16px;">
+          <div class="field f-name"><label>Benutzer hinzufügen</label>
+            <select id="addMemberSelect">${candidates.length ? candidates.map(u => `<option value="${u.id}">${escapeHtml(u.name || u.email)}</option>`).join('') : '<option value="">Alle Benutzer sind bereits Mitglied</option>'}</select>
+          </div>
+          <button class="btn small" onclick="addMember('${project.id}')">Hinzufügen</button>
+        </div>
+        <div class="meta" style="margin-top:12px;">Hinzufügen kann man nur Personen, die der Über-Admin bereits im Programm angelegt und freigeschaltet hat.</div>
+      </div>
+    </div>`;
+}
+
+function trashedItems(pid) {
+  const activeIds = new Set(activeLists(pid).map(l => l.id));
+  return db.items.filter(i => i.project_id === pid && i.deleted_at && activeIds.has(i.list_id));
+}
+function renderTrashTab(project) {
+  const dl = db.lists.filter(l => l.project_id === project.id && l.deleted_at);
+  const di = trashedItems(project.id);
+  const listName = id => { const l = findList(id); return l ? l.name : ''; };
+  $('tabContent').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><div><h3>Papierkorb</h3><div class="meta">Gelöschte Listen und Zutaten lassen sich hier wiederherstellen.</div></div></div>
+      <div class="panel-body">
+        ${!dl.length && !di.length ? `<div style="color:var(--ink-faint); font-size:13.5px;">Der Papierkorb ist leer.</div>` : ''}
+        ${dl.length ? `<div class="meta" style="margin-bottom:6px;">Listen</div>` + dl.map(l => `
+          <div class="member-row">
+            <span>${escapeHtml(l.name)} <span class="meta">— ${db.items.filter(i => i.list_id === l.id && !i.deleted_at).length} Zutaten</span></span>
+            <span><button class="icon-btn" onclick="restoreList('${l.id}')">Wiederherstellen</button><button class="icon-btn del" onclick="purgeList('${l.id}')">Endgültig löschen</button></span>
+          </div>`).join('') : ''}
+        ${di.length ? `<div class="meta" style="margin:16px 0 6px;">Zutaten</div>` + di.map(i => `
+          <div class="member-row">
+            <span>${escapeHtml(i.name)} <span class="meta">— ${escapeHtml(formatAmount(i.qty, i.unit))} · aus „${escapeHtml(listName(i.list_id))}“</span></span>
+            <span><button class="icon-btn" onclick="restoreItem('${i.id}')">Wiederherstellen</button><button class="icon-btn del" onclick="purgeItem('${i.id}')">Endgültig löschen</button></span>
+          </div>`).join('') : ''}
+      </div>
+    </div>`;
+}
+
+/* ================= TIPPFEHLER-HINWEISE ================= */
+function handleSuggest(input, pid, field) {
+  const slot = input.closest('.field').querySelector('.suggest-slot');
+  const s = field === 'name' ? findSimilarIngredient(pid, input.value) : findSimilarSupplier(pid, input.value);
+  slot.innerHTML = s
+    ? `<div class="suggest-chip">Meinst du „${escapeHtml(s)}“? <button type="button" data-value="${escapeHtml(s)}" onclick="applySuggestion(this, '${field}')">Übernehmen</button></div>`
+    : '';
+}
+function applySuggestion(btn, field) {
+  const input = btn.closest('.field').querySelector(`input[name="${field}"]`);
+  input.value = btn.dataset.value;
+  btn.closest('.suggest-slot').innerHTML = '';
+  input.focus();
+}
+
+/* ================= AKTIONEN: PROJEKTE ================= */
+function promptNewProject() {
+  if (!canCreateProject()) return;
+  closeMobileNav();
+  $('npName').value = ''; $('npDesc').value = '';
+  newProjectDialog.showModal(); $('npName').focus();
+}
+async function createProject() {
+  if (!canCreateProject()) { newProjectDialog.close(); return; }
+  const name = $('npName').value.trim();
+  if (!name) { $('npName').focus(); return; }
+  const description = $('npDesc').value.trim();
+  const id = uuid();
+  newProjectDialog.close();
+  const ok = await mutate(sb.from('projects').insert({ id, name, description, created_by: me.id }));
+  if (ok) { ui.projectId = id; ui.tab = 'lists'; saveUi(); renderApp(); }
+}
+let editProjectTargetId = null;
+function openEditProject(pid) {
+  const p = findProject(pid);
+  if (!p || !isProjectAdmin(p)) return;
+  editProjectTargetId = pid;
+  $('epName').value = p.name; $('epDesc').value = p.description || '';
+  editProjectDialog.showModal(); $('epName').focus();
+}
+async function saveEditProject() {
+  const p = findProject(editProjectTargetId);
+  if (!p || !isProjectAdmin(p)) { editProjectDialog.close(); return; }
+  const name = $('epName').value.trim();
+  if (!name) { $('epName').focus(); return; }
+  const description = $('epDesc').value.trim();
+  editProjectDialog.close();
+  await mutate(sb.from('projects').update({ name, description }).eq('id', p.id));
+}
+
+/* ================= AKTIONEN: LISTEN ================= */
+function addList(ev, pid) {
+  ev.preventDefault();
+  const name = ev.target.elements['listName'].value.trim();
+  if (!name) return false;
+  mutate(sb.from('lists').insert({ project_id: pid, name }));
+  return false;
+}
+let editListTargetId = null;
+function openEditList(id) {
+  const l = findList(id); const p = l && findProject(l.project_id);
+  if (!l || !p || !canEdit(p)) return;
+  editListTargetId = id;
+  $('elName').value = l.name;
+  editListDialog.showModal(); $('elName').focus();
+}
+async function saveEditList() {
+  const l = findList(editListTargetId);
+  if (!l) { editListDialog.close(); return; }
+  const name = $('elName').value.trim();
+  if (!name) { $('elName').focus(); return; }
+  editListDialog.close();
+  await mutate(sb.from('lists').update({ name }).eq('id', l.id));
+}
+async function deleteList(id) {
+  const l = findList(id); if (!l) return;
+  const ok = await mutate(sb.from('lists').update({ deleted_at: new Date().toISOString() }).eq('id', id));
+  if (ok) toast(`Liste „${l.name}“ gelöscht`, 'Rückgängig', () => restoreList(id));
+}
+async function restoreList(id) {
+  const ok = await mutate(sb.from('lists').update({ deleted_at: null }).eq('id', id));
+  if (ok) toast('Liste wiederhergestellt');
+}
+function purgeList(id) {
+  const l = findList(id); if (!l) return;
+  openConfirm(`Liste „${l.name}“ mit allen Zutaten endgültig löschen? Das kann nicht rückgängig gemacht werden.`,
+    () => mutate(sb.from('lists').delete().eq('id', id)), 'Endgültig löschen');
+}
+
+let copyListSourceId = null;
+function openCopyList(id) {
+  const l = findList(id); if (!l) return;
+  copyListSourceId = id;
+  $('clName').value = `${l.name} (Kopie)`;
+  const targets = visibleProjects().filter(p => { const r = roleInProject(p); return r === 'admin' || r === 'editor'; });
+  $('clProject').innerHTML = targets.map(p => `<option value="${p.id}" ${p.id === l.project_id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
+  copyListDialog.showModal(); $('clName').focus(); $('clName').select();
+}
+async function saveCopyList() {
+  const src = findList(copyListSourceId); if (!src) { copyListDialog.close(); return; }
+  const name = $('clName').value.trim();
+  const pid = $('clProject').value;
+  if (!name || !pid) { $('clName').focus(); return; }
+  const rows = itemsOfList(src.id);
+  copyListDialog.close();
+  const newId = uuid();
+  const r1 = await sb.from('lists').insert({ id: newId, project_id: pid, name });
+  if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
+  if (rows.length) {
+    const r2 = await sb.from('items').insert(rows.map(i => ({ project_id: pid, list_id: newId, name: i.name, qty: i.qty, unit: i.unit, supplier: i.supplier, bought: false })));
+    if (r2.error) { toast('Liste kopiert, aber Zutaten nicht: ' + friendlyError(r2.error), null, null, true); }
+  }
+  await refresh();
+  const target = findProject(pid);
+  if (!r1.error) toast(pid === ui.projectId ? 'Liste kopiert' : `Kopiert nach „${target ? target.name : ''}“`);
+}
+
+/* ================= AKTIONEN: ZUTATEN ================= */
+function addItem(ev, listId) {
+  ev.preventDefault();
+  const f = ev.target;
+  const name = f.elements['name'].value.trim();
+  const qty = parseFloat(f.elements['qty'].value);
+  const list = findList(listId);
+  if (!name || isNaN(qty) || !list) return false;
+  if (qty < 0) { toast('Die Anzahl darf nicht negativ sein.', null, null, true); return false; }
+  pendingFocusListId = listId;
+  mutate(sb.from('items').insert({
+    project_id: list.project_id, list_id: listId, name, qty,
+    unit: f.elements['unit'].value.trim(), supplier: f.elements['supplier'].value.trim()
+  }));
+  return false;
+}
+let editItemTargetId = null;
+function openEditItem(id) {
+  const it = db.items.find(i => i.id === id);
+  const p = it && findProject(it.project_id);
+  if (!it || !p || !canEdit(p)) return;
+  editItemTargetId = id;
+  $('eiName').value = it.name; $('eiQty').value = it.qty; $('eiUnit').value = it.unit || ''; $('eiSupplier').value = it.supplier || '';
+  $('supplierOptionsDialog').innerHTML = projectSupplierNames(p.id).map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
+  editItemDialog.showModal(); $('eiName').focus();
+}
+async function saveEditItem() {
+  const it = db.items.find(i => i.id === editItemTargetId);
+  if (!it) { editItemDialog.close(); return; }
+  const name = $('eiName').value.trim();
+  const qty = parseFloat($('eiQty').value);
+  if (!name) { $('eiName').focus(); return; }
+  if (isNaN(qty) || qty < 0) { $('eiQty').focus(); toast('Die Anzahl muss eine Zahl von 0 oder größer sein.', null, null, true); return; }
+  const patch = { name, qty, unit: $('eiUnit').value.trim(), supplier: $('eiSupplier').value.trim() };
+  editItemDialog.close();
+  await mutate(sb.from('items').update(patch).eq('id', it.id));
+}
+async function deleteItem(id) {
+  const it = db.items.find(i => i.id === id); if (!it) return;
+  const ok = await mutate(sb.from('items').update({ deleted_at: new Date().toISOString() }).eq('id', id));
+  if (ok) toast(`„${it.name}“ gelöscht`, 'Rückgängig', () => restoreItem(id));
+}
+async function restoreItem(id) {
+  const ok = await mutate(sb.from('items').update({ deleted_at: null }).eq('id', id));
+  if (ok) toast('Zutat wiederhergestellt');
+}
+function purgeItem(id) {
+  const it = db.items.find(i => i.id === id); if (!it) return;
+  openConfirm(`„${it.name}“ endgültig löschen?`, () => mutate(sb.from('items').delete().eq('id', id)), 'Endgültig löschen');
+}
+
+// „Gekauft"-Häkchen: sofort sichtbar (optimistisch), dann speichern
+async function toggleBought(idsCsv, checked) {
+  const ids = idsCsv.split(',');
+  db.items.forEach(i => { if (ids.includes(i.id)) i.bought = checked; });
+  renderMain();
+  const { error } = await sb.from('items').update({ bought: checked }).in('id', ids);
+  if (error) { toast('Fehler: ' + friendlyError(error), null, null, true); await refresh(); }
+}
+async function resetBought(pid) {
+  await mutate(sb.from('items').update({ bought: false }).eq('project_id', pid).eq('bought', true));
+}
+
+/* ================= AKTIONEN: MITGLIEDER ================= */
+async function addMember(pid) {
+  const uid = $('addMemberSelect').value;
+  if (!uid) return;
+  await mutate(sb.from('project_members').insert({ project_id: pid, user_id: uid, role: 'viewer' }));
+}
+async function setMemberRole(pid, uid, role) {
+  await mutate(sb.from('project_members').update({ role }).eq('project_id', pid).eq('user_id', uid));
+}
+function removeMember(pid, uid) {
+  const doIt = () => mutate(sb.from('project_members').delete().eq('project_id', pid).eq('user_id', uid));
+  if (uid === me.id && me.role !== 'admin') openConfirm('Dich selbst aus diesem Projekt entfernen? Du verlierst damit den Zugriff.', doIt, 'Entfernen');
+  else doIt();
+}
+
+/* ================= SYSTEMVERWALTUNG ================= */
+function openUserAdmin() {
+  if (!me || me.role !== 'admin') return;
+  closeMobileNav();
+  renderUserAdminList(); renderAllProjectsList();
+  userAdminDialog.showModal();
+}
+function renderUserAdminList() {
+  const users = [...db.profiles].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
+  $('userAdminList').innerHTML = users.map(u => `
+    <div class="member-row">
+      <span>${escapeHtml(u.name || '—')}<div class="meta">${escapeHtml(u.email || '')}</div></span>
+      <select ${u.id === me.id ? 'disabled title="Eigene Rolle kann nicht geändert werden"' : ''} onchange="setUserRole('${u.id}', this.value)">
+        ${['pending', 'viewer', 'editor', 'lead', 'admin'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${roleLabel(r)}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+async function setUserRole(id, role) {
+  if (id === me.id) return;
+  await mutate(sb.from('profiles').update({ role }).eq('id', id));
+}
+async function createUser() {
+  const name = $('newUserName').value.trim();
+  const email = $('newUserEmail').value.trim();
+  const password = $('newUserPassword').value;
+  const role = $('newUserRole').value;
+  if (!name || !email || !password) { toast('Bitte Name, E-Mail und Passwort angeben.', null, null, true); return; }
+  if (password.length < 6) { toast('Das Passwort braucht mindestens 6 Zeichen.', null, null, true); return; }
+  const btn = $('createUserBtn'); btn.disabled = true;
+  // Eigener, kurzlebiger Client, damit die Sitzung des Admins unberührt bleibt
+  const tmp = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'kombuese-tmp-signup' }
+  });
+  const { data, error } = await tmp.auth.signUp({ email, password, options: { data: { name } } });
+  btn.disabled = false;
+  if (error) { toast('Fehler: ' + friendlyError(error), null, null, true); return; }
+  if (!data.user || (data.user.identities && data.user.identities.length === 0)) {
+    toast('Diese E-Mail-Adresse ist bereits registriert.', null, null, true); return;
+  }
+  const { error: e2 } = await sb.from('profiles').update({ role, name }).eq('id', data.user.id);
+  if (e2) { toast('Konto angelegt, Rolle konnte nicht gesetzt werden: ' + friendlyError(e2), null, null, true); }
+  else toast(`Konto für ${name} angelegt.`);
+  $('newUserName').value = ''; $('newUserEmail').value = ''; $('newUserPassword').value = '';
+  await refresh();
+}
+function renderAllProjectsList() {
+  const box = $('allProjectsList');
+  if (!db.projects.length) { box.innerHTML = `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Projekte.</div>`; return; }
+  box.innerHTML = visibleProjects().map(p => {
+    const mc = db.members.filter(m => m.project_id === p.id).length;
+    const lc = activeLists(p.id).length;
+    return `<div class="member-row">
+      <span>${escapeHtml(p.name)} <span class="meta">— ${mc} Mitglied${mc === 1 ? '' : 'er'}, ${lc} Liste${lc === 1 ? '' : 'n'}</span></span>
+      <button class="icon-btn del" onclick="deleteProjectGlobal('${p.id}')">Löschen</button>
+    </div>`;
+  }).join('');
+}
+function deleteProjectGlobal(id) {
+  const p = findProject(id); if (!p) return;
+  openConfirm(`Projekt „${p.name}“ inklusive aller Listen und Zutaten unwiderruflich löschen?`, () => mutate(sb.from('projects').delete().eq('id', id)));
+}
+
+/* ---------- Sichern / Übernehmen ---------- */
+function downloadBlob(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+function exportData() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    projects: db.projects.map(p => ({ id: p.id, name: p.name, description: p.description })),
+    lists: db.lists.filter(l => !l.deleted_at).map(l => ({ id: l.id, project_id: l.project_id, name: l.name })),
+    items: db.items.filter(i => !i.deleted_at).map(i => ({ list_id: i.list_id, project_id: i.project_id, name: i.name, qty: i.qty, unit: i.unit, supplier: i.supplier }))
+  };
+  downloadBlob(`kuechenplaner-daten-${new Date().toISOString().slice(0, 10)}.json`, new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+}
+function importData(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try { parsed = JSON.parse(reader.result); } catch (e) { toast('Das ist keine gültige Datendatei.', null, null, true); return; }
+    if (!parsed || !Array.isArray(parsed.projects) || !Array.isArray(parsed.lists) || !Array.isArray(parsed.items)) {
+      toast('Die Datei enthält keine erkennbaren Küchenplaner-Daten.', null, null, true); return;
+    }
+    openConfirm(`${parsed.projects.length} Projekt(e), ${parsed.lists.length} Liste(n) und ${parsed.items.length} Zutat(en) als neue Projekte anlegen?`,
+      () => runImport(parsed), 'Importieren');
+  };
+  reader.readAsText(file);
+}
+async function runImport(parsed) {
+  const projMap = new Map(), listMap = new Map();
+  for (const p of parsed.projects) {
+    const id = uuid(); projMap.set(p.id, id);
+    const { error } = await sb.from('projects').insert({ id, name: String(p.name || 'Import'), description: String(p.description || ''), created_by: me.id });
+    if (error) { toast('Import abgebrochen: ' + friendlyError(error), null, null, true); await refresh(); return; }
+  }
+  const listRows = [];
+  parsed.lists.forEach(l => {
+    const oldPid = l.project_id ?? l.projectId;
+    if (!projMap.has(oldPid)) return;
+    const id = uuid(); listMap.set(l.id, id);
+    listRows.push({ id, project_id: projMap.get(oldPid), name: String(l.name || 'Liste') });
+  });
+  if (listRows.length) {
+    const { error } = await sb.from('lists').insert(listRows);
+    if (error) { toast('Import abgebrochen: ' + friendlyError(error), null, null, true); await refresh(); return; }
+  }
+  const listToProject = new Map(listRows.map(r => [r.id, r.project_id]));
+  const itemRows = [];
+  parsed.items.forEach(i => {
+    const nl = listMap.get(i.list_id ?? i.listId);
+    if (!nl) return;
+    const qty = Math.max(0, Number(i.qty) || 0);
+    itemRows.push({ project_id: listToProject.get(nl), list_id: nl, name: String(i.name || ''), qty, unit: String(i.unit || ''), supplier: String(i.supplier || '') });
+  });
+  for (let k = 0; k < itemRows.length; k += 200) {
+    const { error } = await sb.from('items').insert(itemRows.slice(k, k + 200));
+    if (error) { toast('Import teilweise fehlgeschlagen: ' + friendlyError(error), null, null, true); break; }
+  }
+  await refresh();
+  toast('Import abgeschlossen. Mitglieder bitte neu zuordnen.');
+}
+
+/* ================= EXPORT: CSV & EXCEL ================= */
+function buildTables(project) {
+  const lists = activeLists(project.id);
+  const listsT = { name: 'Listen', head: ['Liste', 'Bezeichnung', 'Anzahl', 'Einheit', 'Lieferant', 'Gekauft'], rows: [] };
+  lists.forEach(l => itemsOfList(l.id).forEach(i => listsT.rows.push([l.name, i.name, Number(i.qty), i.unit || '', i.supplier || '', i.bought ? 'ja' : 'nein'])));
+  const aggT = {
+    name: 'Gesamtliste',
+    head: ['Bezeichnung', 'Gesamtmenge', 'Lieferanten', ...lists.map(l => l.name)],
+    rows: aggregateProject(project.id).map(g => [g.name, formatGroupTotal(g), [...g.suppliers].join(', '), ...lists.map(l => g.listIds.has(l.id) ? 'x' : '')])
+  };
+  const supT = { name: 'Lieferanten', head: ['Lieferant', 'Bezeichnung', 'Gesamtmenge', 'Listen', 'Gekauft'], rows: [] };
+  aggregateBySupplier(project.id).forEach(g => g.entries.forEach(e => supT.rows.push([g.supplier, e.name, formatGroupTotal(e), [...e.listNames].join(', '), e.bought ? 'ja' : 'nein'])));
+  return { lists: listsT, aggregate: aggT, suppliers: supT };
+}
+function safeFileName(s) { return String(s).replace(/[^\p{L}\p{N}\-_]+/gu, '_').replace(/^_+|_+$/g, '') || 'projekt'; }
+function csvCell(c) {
+  let s = typeof c === 'number' ? String(c).replace('.', ',') : String(c ?? '');
+  if (typeof c !== 'number' && /^[=+\-@\t\r]/.test(s)) s = "'" + s; // Formel-Einschleusung verhindern
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function exportCsv() {
+  const project = findProject(ui.projectId); if (!project) return;
+  const tables = buildTables(project);
+  const key = ui.tab === 'aggregate' ? 'aggregate' : ui.tab === 'suppliers' ? 'suppliers' : 'lists';
+  const t = tables[key];
+  const csv = '\ufeff' + [t.head, ...t.rows].map(r => r.map(csvCell).join(';')).join('\r\n');
+  downloadBlob(`${safeFileName(project.name)}-${t.name.toLowerCase()}.csv`, new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+}
+function loadSheetJs() {
+  return new Promise((resolve, reject) => {
+    if (window.XLSX) return resolve();
+    const urls = [
+      'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+      'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+    ];
+    const tryNext = () => {
+      const url = urls.shift();
+      if (!url) return reject(new Error('Excel-Bibliothek konnte nicht geladen werden'));
+      const s = document.createElement('script');
+      s.src = url; s.onload = () => resolve(); s.onerror = () => { s.remove(); tryNext(); };
+      document.head.appendChild(s);
+    };
+    tryNext();
+  });
+}
+async function exportExcel() {
+  const project = findProject(ui.projectId); if (!project) return;
+  try { await loadSheetJs(); } catch (e) { toast(e.message, null, null, true); return; }
+  const tables = buildTables(project);
+  const wb = XLSX.utils.book_new();
+  ['aggregate', 'suppliers', 'lists'].forEach(k => {
+    const t = tables[k];
+    const ws = XLSX.utils.aoa_to_sheet([t.head, ...t.rows]);
+    ws['!cols'] = t.head.map((h, idx) => ({ wch: Math.min(40, Math.max(String(h).length, ...t.rows.map(r => String(r[idx] ?? '').length)) + 2) }));
+    XLSX.utils.book_append_sheet(wb, ws, t.name);
+  });
+  XLSX.writeFile(wb, `${safeFileName(project.name)}.xlsx`);
+}
+
+/* ================= HILFS-DIALOGE ================= */
+let pendingConfirm = null;
+function openConfirm(message, onYes, label) {
+  $('confirmBody').textContent = message;
+  $('confirmYes').textContent = label || 'Löschen';
+  pendingConfirm = onYes;
+  confirmDialog.showModal();
+}
+function runConfirm() {
+  confirmDialog.close();
+  const cb = pendingConfirm; pendingConfirm = null;
+  if (cb) cb();
+}
+function openPasswordDialog(recovery) {
+  if (passwordDialog.open) return;
+  $('pwTitle').textContent = recovery ? 'Neues Passwort festlegen' : 'Passwort ändern';
+  $('pwCancel').style.display = recovery ? 'none' : '';
+  $('pwInput').value = '';
+  closeMobileNav();
+  passwordDialog.showModal(); $('pwInput').focus();
+}
+async function savePassword() {
+  const v = $('pwInput').value;
+  if (v.length < 6) { toast('Mindestens 6 Zeichen.', null, null, true); return; }
+  const { error } = await sb.auth.updateUser({ password: v });
+  if (error) { toast('Fehler: ' + friendlyError(error), null, null, true); return; }
+  passwordDialog.close();
+  toast('Passwort geändert.');
+}
+
+/* ================= APP INSTALLIEREN (PWA) ================= */
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; $('installBtn').style.display = 'inline-flex'; });
+window.addEventListener('appinstalled', () => { deferredInstall = null; $('installBtn').style.display = 'none'; });
+async function installApp() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice;
+  deferredInstall = null; $('installBtn').style.display = 'none';
+}
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => { /* ohne Service Worker läuft die App trotzdem */ }); });
+}
+
+/* ================= START ================= */
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') return;
+  setTimeout(() => onAuth(event, session), 0); // nicht direkt im Callback weiterarbeiten (Supabase-Empfehlung)
+});
+(async () => {
+  const { data, error } = await sb.auth.getSession();
+  if (error) { $('loadingText').textContent = 'Fehler: ' + friendlyError(error); return; }
+  await onAuth('INIT', data.session);
+})();
+</script>
+</body>
+</html>
