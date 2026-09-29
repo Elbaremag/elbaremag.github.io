@@ -153,6 +153,7 @@
   td.num { text-align: right; font-variant-numeric: tabular-nums; }
   td.mark-col { text-align: center; color: var(--sage); font-weight: 600; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
   th.mark-head { text-align: center; border-left: 1px solid var(--line); border-right: 1px solid var(--line); max-width: 110px; }
+  tr td.mark-col:nth-child(even), tr th.mark-head:nth-child(even) { background: var(--sage-soft); }
   .overflow-wrap { overflow-x: auto; }
   input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
   tr.done td { color: var(--ink-faint); text-decoration: line-through; }
@@ -233,7 +234,13 @@
     .add-row-form .f-unit, .add-row-form .f-supplier { width: 100%; min-width: 0; }
     .add-row-form .btn { width: 100%; }
     .panel-head { flex-wrap: wrap; }
+    .panel-head > div:first-child { min-width: 0; }
+    table { font-size: 13px; }
+    thead th { font-size: 10.5px; padding: 5px 6px; }
+    tbody td { padding: 7px 6px; }
+    .field[style*="max-width:320px"] { max-width: none !important; }
     dialog { max-width: none; width: 92%; max-height: 85vh; overflow-y: auto; }
+    .rc-row .icon-btn { align-self: center; }
   }
 
   @media print {
@@ -341,6 +348,8 @@
     <div class="side-section-label">Projekte</div>
     <div id="projectList"></div>
     <div id="newProjectSlot"></div>
+    <div class="side-section-label">Bibliothek</div>
+    <button class="project-item" id="recipesNavBtn" onclick="openRecipesView()">📖 Rezepte</button>
     <div class="sidebar-spacer"></div>
     <div class="user-box">
       <div class="name" id="curUserName"></div>
@@ -384,9 +393,10 @@
 </dialog>
 
 <dialog id="editListDialog">
-  <div class="dialog-head"><h3>Liste umbenennen</h3></div>
+  <div class="dialog-head"><h3>Liste bearbeiten</h3></div>
   <div class="dialog-body">
-    <div class="field" style="margin-bottom:0;"><label for="elName">Name</label><input id="elName" type="text" onkeydown="if(event.key==='Enter')saveEditList()"></div>
+    <div class="field"><label for="elName">Name</label><input id="elName" type="text"></div>
+    <div class="field" style="margin-bottom:0;"><label for="elNote">Notiz (optional)</label><input id="elNote" type="text" placeholder="z. B. Treffpunkt, Uhrzeit …" onkeydown="if(event.key==='Enter')saveEditList()"></div>
   </div>
   <div class="dialog-actions">
     <button class="btn secondary" onclick="editListDialog.close()">Abbrechen</button>
@@ -407,13 +417,46 @@
   </div>
 </dialog>
 
+<dialog id="recipeDialog" class="wide">
+  <div class="dialog-head"><h3 id="recipeDialogTitle">Rezept anlegen</h3></div>
+  <div class="dialog-body">
+    <div class="field"><label for="rcName">Name</label><input id="rcName" type="text" placeholder="z. B. Chili sin Carne"></div>
+    <div class="field"><label for="rcNote">Notiz (optional)</label><input id="rcNote" type="text" placeholder="Quelle, Hinweise …"></div>
+    <div class="meta" style="margin-bottom:6px;">Zutaten</div>
+    <div id="rcRows"></div>
+    <button class="btn secondary small" type="button" onclick="addRecipeRow()" style="margin-top:6px;">+ Zutat</button>
+    <div class="meta" style="margin-top:6px;">Zeilen im Format „Menge Einheit Bezeichnung“ einfügen (z. B. aus einem Rezept-Text) — eine Zutat pro Zeile:</div>
+    <textarea id="rcPaste" rows="3" style="width:100%; margin-top:6px; padding:8px 10px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font-family:inherit; font-size:13.5px;" placeholder="400 g Hackfleisch&#10;1 Dose Kidneybohnen&#10;2 Zwiebeln"></textarea>
+    <button class="btn secondary small" type="button" onclick="importPastedIngredients()" style="margin-top:6px;">Einfügen übernehmen</button>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="recipeDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="saveRecipe()">Speichern</button>
+  </div>
+</dialog>
+
+<dialog id="addRecipeToProjectDialog">
+  <div class="dialog-head"><h3>Rezept zu Projekt hinzufügen</h3></div>
+  <div class="dialog-body">
+    <p style="font-size:13px; color:var(--ink-soft); margin:0 0 14px;">Legt eine neue Liste mit allen Zutaten des Rezepts an.</p>
+    <div class="field"><label for="rpListName">Name der neuen Liste</label><input id="rpListName" type="text"></div>
+    <div class="field" style="margin-bottom:0;"><label for="rpProject">In Projekt</label><select id="rpProject"></select></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="addRecipeToProjectDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="saveAddRecipeToProject()">Hinzufügen</button>
+  </div>
+</dialog>
+
 <dialog id="editItemDialog">
   <div class="dialog-head"><h3>Zutat bearbeiten</h3></div>
   <div class="dialog-body">
     <div class="field"><label for="eiName">Bezeichnung</label><input id="eiName" type="text"></div>
     <div class="field"><label for="eiQty">Anzahl</label><input id="eiQty" type="number" step="any" min="0"></div>
     <div class="field"><label for="eiUnit">Einheit</label><input id="eiUnit" type="text" list="unitOptions"></div>
-    <div class="field" style="margin-bottom:0;"><label for="eiSupplier">Lieferant</label><input id="eiSupplier" type="text" list="supplierOptionsDialog"></div>
+    <div class="field"><label for="eiSupplier">Lieferant</label><input id="eiSupplier" type="text" list="supplierOptionsDialog"></div>
+    <div class="field"><label for="eiCategory">Kategorie (für den Einkauf)</label><input id="eiCategory" type="text" list="categoryOptions"></div>
+    <div class="field" style="margin-bottom:0;"><label for="eiNote">Notiz (optional)</label><input id="eiNote" type="text" placeholder="z. B. bitte Bio"></div>
     <datalist id="supplierOptionsDialog"></datalist>
   </div>
   <div class="dialog-actions">
@@ -465,6 +508,16 @@
   <option value="Glas"></option><option value="Packung"></option><option value="Scheibe"></option>
   <option value="Zehe"></option><option value="Blatt"></option><option value="Würfel"></option>
   <option value="Tasse"></option><option value="Flasche"></option>
+</datalist>
+
+<datalist id="categoryOptions">
+  <option value="Obst &amp; Gemüse"></option>
+  <option value="Brot &amp; Backwaren"></option>
+  <option value="Kühlregal"></option>
+  <option value="Tiefkühl"></option>
+  <option value="Trockenware &amp; Vorrat"></option>
+  <option value="Getränke"></option>
+  <option value="Drogerie &amp; Sonstiges"></option>
 </datalist>
 
 <dialog id="userAdminDialog" class="wide">
@@ -520,7 +573,7 @@ if (!window.supabase) {
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= STATE ================= */
-const db = { profiles: [], projects: [], members: [], lists: [], items: [] };
+const db = { profiles: [], projects: [], members: [], lists: [], items: [], recipes: [], recipeItems: [] };
 let me = null;          // eigenes Profil {id, name, email, role}
 let started = false;    // Sitzung vollständig geladen?
 let startingFor = null; // verhindert doppelten Start
@@ -528,10 +581,19 @@ let recoveryMode = false;
 let rtChannel = null;
 
 let ui = (() => {
-  try { return Object.assign({ projectId: null, tab: 'lists' }, JSON.parse(localStorage.getItem('kombuese-ui') || '{}')); }
-  catch (e) { return { projectId: null, tab: 'lists' }; }
+  try { return Object.assign({ view: 'project', projectId: null, tab: 'lists', search: '' }, JSON.parse(localStorage.getItem('kombuese-ui') || '{}')); }
+  catch (e) { return { view: 'project', projectId: null, tab: 'lists', search: '' }; }
 })();
 function saveUi() { try { localStorage.setItem('kombuese-ui', JSON.stringify(ui)); } catch (e) { /* ignore */ } }
+
+// Feste Reihenfolge für den Einkauf; alles andere landet hinten unter "Sonstiges".
+const CATEGORY_ORDER = ['Obst & Gemüse', 'Brot & Backwaren', 'Kühlregal', 'Tiefkühl', 'Trockenware & Vorrat', 'Getränke', 'Drogerie & Sonstiges'];
+function categoryRank(cat) {
+  const c = String(cat || '').trim();
+  if (!c) return CATEGORY_ORDER.length + 1;
+  const i = CATEGORY_ORDER.indexOf(c);
+  return i === -1 ? CATEGORY_ORDER.length : i;
+}
 
 /* ================= HELPERS ================= */
 function uuid() {
@@ -649,16 +711,17 @@ function aggregateBySupplier(pid) {
     const g = sup.get(skey);
     const info = unitInfo(i.unit);
     const key = groupKey(i.name, i.unit);
-    if (!g.map.has(key)) g.map.set(key, { name: i.name, unit: i.unit, fam: info ? info.fam : null, total: 0, listNames: new Set(), itemIds: [], bought: true });
+    if (!g.map.has(key)) g.map.set(key, { name: i.name, unit: i.unit, fam: info ? info.fam : null, total: 0, listNames: new Set(), itemIds: [], bought: true, category: i.category || '' });
     const e = g.map.get(key);
     e.total += (Number(i.qty) || 0) * (info ? info.f : 1);
     e.listNames.add(listNames.get(i.list_id) || '');
     e.itemIds.push(i.id);
+    if (!e.category && i.category) e.category = i.category;
     if (!i.bought) e.bought = false;
   });
   const groups = [...sup.values()].map(g => ({
     supplier: g.supplier,
-    entries: [...g.map.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'))
+    entries: [...g.map.values()].sort((a, b) => categoryRank(a.category) - categoryRank(b.category) || a.name.localeCompare(b.name, 'de'))
   }));
   groups.sort((a, b) => {
     if (a.supplier === 'Ohne Lieferant') return 1;
@@ -729,14 +792,17 @@ async function fetchAll(table, orderCols) {
   return out;
 }
 async function loadAll() {
-  const [profiles, projects, members, lists, items] = await Promise.all([
+  const [profiles, projects, members, lists, items, recipes, recipeItems] = await Promise.all([
     fetchAll('profiles', ['created_at', 'id']),
     fetchAll('projects', ['created_at', 'id']),
     fetchAll('project_members', ['project_id', 'user_id']),
     fetchAll('lists', ['created_at', 'id']),
-    fetchAll('items', ['created_at', 'id'])
+    fetchAll('items', ['created_at', 'id']),
+    fetchAll('recipes', ['name']),
+    fetchAll('recipe_items', ['name'])
   ]);
   db.profiles = profiles; db.projects = projects; db.members = members; db.lists = lists; db.items = items;
+  db.recipes = recipes; db.recipeItems = recipeItems;
   const mine = profiles.find(p => p.id === me.id);
   if (mine) me = mine;
 }
@@ -839,7 +905,7 @@ function subscribeRealtime() {
   if (rtChannel) { sb.removeChannel(rtChannel); rtChannel = null; }
   setLive('connecting');
   const ch = sb.channel('kombuese-live');
-  ['profiles', 'projects', 'project_members', 'lists', 'items'].forEach(t => {
+  ['profiles', 'projects', 'project_members', 'lists', 'items', 'recipes', 'recipe_items'].forEach(t => {
     ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, scheduleReload);
   });
   ch.subscribe(status => {
@@ -919,13 +985,15 @@ function renderSidebar() {
   const list = $('projectList');
   const projects = visibleProjects();
   list.innerHTML = projects.length
-    ? projects.map(p => `<button class="project-item ${p.id === ui.projectId ? 'active' : ''}" onclick="selectProject('${p.id}')">${escapeHtml(p.name)}</button>`).join('')
+    ? projects.map(p => `<button class="project-item ${ui.view === 'project' && p.id === ui.projectId ? 'active' : ''}" onclick="selectProject('${p.id}')">${escapeHtml(p.name)}</button>`).join('')
     : `<div style="font-size:13px; color:var(--ink-faint); padding:6px 10px;">Noch keine Projekte.</div>`;
   $('newProjectSlot').innerHTML = canCreateProject()
     ? `<button class="btn secondary small" style="width:100%; margin-top:8px;" onclick="promptNewProject()">+ Neues Projekt</button>`
     : '';
+  $('recipesNavBtn').classList.toggle('active', ui.view === 'recipes');
 }
-function selectProject(id) { ui.projectId = id; ui.tab = 'lists'; saveUi(); renderSidebar(); renderMain(); closeMobileNav(); }
+function selectProject(id) { ui.view = 'project'; ui.projectId = id; ui.tab = 'lists'; saveUi(); renderSidebar(); renderMain(); closeMobileNav(); }
+function openRecipesView() { ui.view = 'recipes'; saveUi(); renderSidebar(); renderMain(); closeMobileNav(); }
 function setTab(t) { ui.tab = t; saveUi(); renderMain(); }
 
 function toggleMobileNav() { $('sidebar').classList.toggle('mobile-open'); $('sidebarBackdrop').classList.toggle('active'); }
@@ -935,6 +1003,7 @@ function closeMobileNav() { $('sidebar').classList.remove('mobile-open'); $('sid
 let pendingFocusListId = null;
 
 function renderMain() {
+  if (ui.view === 'recipes') { renderRecipesView(); return; }
   const main = $('main');
   const project = findProject(ui.projectId);
   if (!project) {
@@ -981,47 +1050,68 @@ function renderMain() {
   }
 }
 
+function setSearch(v) {
+  ui.search = v; saveUi();
+  renderMain();
+  const el = document.querySelector('#tabContent input[data-role="search"]');
+  if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+}
 function renderListsTab(project, editable) {
-  const lists = activeLists(project.id);
+  const q = normName(ui.search);
+  let lists = activeLists(project.id);
   let html = `<datalist id="supplierOptions">${projectSupplierNames(project.id).map(s => `<option value="${escapeHtml(s)}"></option>`).join('')}</datalist>`;
+  html += `
+    <div class="field no-print" style="max-width:320px; margin-bottom:18px;">
+      <input type="text" data-role="search" placeholder="🔍 Zutat suchen …" value="${escapeHtml(ui.search)}" oninput="setSearch(this.value)">
+    </div>`;
   if (!lists.length) {
     html += `<div class="empty-state"><h3>Noch keine Liste angelegt</h3><p>Lege eine Liste für ein Gericht oder eine Mahlzeit an, um Zutaten zu sammeln.</p></div>`;
   }
+  let anyMatch = !q;
   lists.forEach(list => {
-    const items = itemsOfList(list.id);
+    const allItems = itemsOfList(list.id);
+    const items = q ? allItems.filter(i => normName(i.name).includes(q)) : allItems;
+    if (q && !items.length) return;
+    if (q) anyMatch = true;
+    const creator = list.created_by ? profileName(list.created_by) : '';
     html += `
       <div class="panel">
         <div class="panel-head">
           <div>
-            <h3>${escapeHtml(list.name)}</h3>
-            <div class="meta">${items.length} Zutat${items.length === 1 ? '' : 'en'}</div>
+            <h3 ${creator ? `title="angelegt von ${escapeHtml(creator)}"` : ''}>${escapeHtml(list.name)}</h3>
+            <div class="meta">${items.length}${q && items.length !== allItems.length ? ' von ' + allItems.length : ''} Zutat${items.length === 1 ? '' : 'en'}${list.note ? ' · ' + escapeHtml(list.note) : ''}</div>
           </div>
           ${editable ? `<div class="no-print" style="white-space:nowrap;">
-            <button class="icon-btn" onclick="openEditList('${list.id}')" title="Liste umbenennen">✎ Umbenennen</button>
-            <button class="icon-btn" onclick="openCopyList('${list.id}')" title="Liste kopieren">⧉ Kopieren</button>
-            <button class="icon-btn del" onclick="deleteList('${list.id}')" title="Liste löschen">Löschen</button>
+            <button class="icon-btn" onclick="openEditList('${list.id}')" title="Liste bearbeiten">✎</button>
+            <button class="icon-btn" onclick="openCopyList('${list.id}')" title="Liste kopieren">⧉</button>
+            <button class="icon-btn del" onclick="deleteList('${list.id}')" title="Liste löschen">✕</button>
           </div>` : ''}
         </div>
         <div class="panel-body">
           ${items.length ? `
           <div class="overflow-wrap">
           <table>
-            <thead><tr><th>Bezeichnung</th><th>Anzahl</th><th>Einheit</th><th>Gesamtmenge</th><th>Lieferant</th>${editable ? '<th></th>' : ''}</tr></thead>
+            <thead><tr><th>Bezeichnung</th><th>Anzahl</th><th>Einheit</th><th>Gesamtmenge</th><th>Kategorie</th><th>Lieferant</th>${editable ? '<th></th>' : ''}</tr></thead>
             <tbody>
-              ${items.map(i => `
+              ${items.map(i => {
+                const who = i.created_by ? profileName(i.created_by) : '';
+                const tip = [who ? `hinzugefügt von ${who}` : '', i.note ? `Notiz: ${i.note}` : ''].filter(Boolean).join(' · ');
+                return `
                 <tr>
-                  <td>${escapeHtml(i.name)}</td>
+                  <td${tip ? ` title="${escapeHtml(tip)}"` : ''}>${escapeHtml(i.name)}${i.note ? ' 📝' : ''}</td>
                   <td class="num">${fmtNum(Number(i.qty))}</td>
                   <td>${escapeHtml(i.unit || '')}</td>
                   <td class="num">${escapeHtml(formatAmount(i.qty, i.unit))}</td>
+                  <td>${escapeHtml(i.category || '')}</td>
                   <td>${escapeHtml(i.supplier || '')}</td>
                   ${editable ? `<td class="no-print" style="white-space:nowrap;"><button class="icon-btn" onclick="openEditItem('${i.id}')" title="Zutat bearbeiten">✎</button><button class="icon-btn del" onclick="deleteItem('${i.id}')" title="Zutat löschen">✕</button></td>` : ''}
-                </tr>`).join('')}
+                </tr>`;
+              }).join('')}
             </tbody>
           </table>
-          </div>` : `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Zutaten.</div>`}
+          </div>` : `<div style="color:var(--ink-faint); font-size:13.5px;">${q ? 'Keine Treffer.' : 'Noch keine Zutaten.'}</div>`}
 
-          ${editable ? `
+          ${editable && !q ? `
           <form class="add-row-form no-print" data-list="${list.id}" onsubmit="return addItem(event, '${list.id}')">
             <div class="field f-name">
               <label>Bezeichnung</label>
@@ -1030,17 +1120,20 @@ function renderListsTab(project, editable) {
             </div>
             <div class="field f-qty"><label>Anzahl</label><input type="number" step="any" min="0" required name="qty" inputmode="decimal"></div>
             <div class="field f-unit"><label>Einheit</label><input type="text" list="unitOptions" placeholder="g, kg, Stk …" name="unit"></div>
+            <div class="field f-unit"><label>Kategorie</label><input type="text" list="categoryOptions" name="category"></div>
             <div class="field f-supplier">
               <label>Lieferant</label>
               <input type="text" name="supplier" autocomplete="off" list="supplierOptions" oninput="handleSuggest(this, '${project.id}', 'supplier')">
               <div class="suggest-slot"></div>
             </div>
+            <div class="field f-supplier"><label>Notiz</label><input type="text" name="note" placeholder="optional"></div>
             <button class="btn small" type="submit">Hinzufügen</button>
           </form>` : ''}
         </div>
       </div>`;
   });
-  if (editable) {
+  if (q && !anyMatch) html += `<div class="empty-state"><h3>Keine Treffer</h3><p>Keine Zutat passt zu „${escapeHtml(ui.search)}“.</p></div>`;
+  if (editable && !q) {
     html += `
       <form class="add-row-form no-print" onsubmit="return addList(event, '${project.id}')" style="margin-top:4px;">
         <div class="field f-name"><label>Neue Liste (Gericht/Mahlzeit)</label><input type="text" required name="listName" placeholder="z. B. Mittagessen Tag 2"></div>
@@ -1094,19 +1187,24 @@ function renderSuppliersTab(project, editable) {
       <div class="panel-body">
         ${groups.length ? groups.map(g => {
           const done = g.entries.filter(e => e.bought).length;
+          let lastCat = null;
           return `
           <div style="margin-bottom:22px;">
             <div class="sup-title"><span class="name">${escapeHtml(g.supplier)}</span><span class="progress">${done} / ${g.entries.length} gekauft</span></div>
             <div class="overflow-wrap"><table>
               <thead><tr><th style="width:34px;"></th><th>Bezeichnung</th><th>Gesamtmenge</th><th>Liste(n)</th></tr></thead>
               <tbody>
-                ${g.entries.map(e => `
+                ${g.entries.map(e => {
+                  const cat = e.category || 'Ohne Kategorie';
+                  const header = cat !== lastCat ? (lastCat = cat, `<tr><td colspan="4" style="background:var(--paper); font-size:11.5px; font-weight:600; color:var(--ink-soft); padding:6px 8px;">${escapeHtml(cat)}</td></tr>`) : '';
+                  return header + `
                   <tr class="${e.bought ? 'done' : ''}">
                     <td><input type="checkbox" ${e.bought ? 'checked' : ''} ${editable ? '' : 'disabled'} onchange="toggleBought('${e.itemIds.join(',')}', this.checked)" aria-label="gekauft"></td>
                     <td>${escapeHtml(e.name)}</td>
                     <td class="num">${escapeHtml(formatGroupTotal(e))}</td>
                     <td class="supplier-list">${[...e.listNames].map(escapeHtml).join(', ')}</td>
-                  </tr>`).join('')}
+                  </tr>`;
+                }).join('')}
               </tbody>
             </table></div>
           </div>`;
@@ -1174,7 +1272,150 @@ function renderTrashTab(project) {
     </div>`;
 }
 
-/* ================= TIPPFEHLER-HINWEISE ================= */
+/* ================= REZEPTBIBLIOTHEK ================= */
+function canManageRecipes() { return !!me && ['admin', 'lead', 'editor'].includes(me.role); }
+function renderRecipesView() {
+  const recipes = [...db.recipes].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const canManage = canManageRecipes();
+  $('main').innerHTML = `
+    <div class="topbar">
+      <div><h1>Rezeptbibliothek</h1><div class="desc">Projektübergreifend — für alle sichtbar, kann in jede Liste übernommen werden.</div></div>
+      ${canManage ? `<button class="btn" onclick="openRecipeDialog(null)">+ Neues Rezept</button>` : ''}
+    </div>
+    ${recipes.length ? recipes.map(r => {
+      const items = db.recipeItems.filter(x => x.recipe_id === r.id).sort((a, b) => categoryRank(a.category) - categoryRank(b.category) || a.name.localeCompare(b.name, 'de'));
+      const who = r.created_by ? profileName(r.created_by) : '';
+      return `
+      <div class="panel">
+        <div class="panel-head">
+          <div><h3 ${who ? `title="angelegt von ${escapeHtml(who)}"` : ''}>${escapeHtml(r.name)}</h3>
+          <div class="meta">${items.length} Zutat${items.length === 1 ? '' : 'en'}${r.note ? ' · ' + escapeHtml(r.note) : ''}</div></div>
+          <div style="white-space:nowrap;">
+            <button class="btn secondary small" onclick="openAddRecipeToProject('${r.id}')">In Projekt übernehmen</button>
+            ${canManage ? `<button class="icon-btn" onclick="openRecipeDialog('${r.id}')" title="Bearbeiten">✎</button><button class="icon-btn del" onclick="deleteRecipe('${r.id}')" title="Löschen">✕</button>` : ''}
+          </div>
+        </div>
+        ${items.length ? `<div class="panel-body"><div class="overflow-wrap"><table>
+          <thead><tr><th>Bezeichnung</th><th>Menge</th><th>Kategorie</th></tr></thead>
+          <tbody>${items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td class="num">${escapeHtml(formatAmount(i.qty, i.unit))}</td><td>${escapeHtml(i.category || '')}</td></tr>`).join('')}</tbody>
+        </table></div></div>` : ''}
+      </div>`;
+    }).join('') : `<div class="empty-state"><h3>Noch keine Rezepte</h3><p>${canManage ? 'Lege oben ein neues Rezept an.' : 'Sobald jemand ein Rezept anlegt, erscheint es hier.'}</p></div>`}
+  `;
+}
+
+let recipeEditId = null;
+function readRecipeRows() {
+  return [...document.querySelectorAll('#rcRows .rc-row')].map(row => ({
+    name: row.querySelector('[data-f="name"]').value.trim(),
+    qty: parseFloat(row.querySelector('[data-f="qty"]').value) || 0,
+    unit: row.querySelector('[data-f="unit"]').value.trim(),
+    category: row.querySelector('[data-f="category"]').value.trim()
+  })).filter(r => r.name);
+}
+function recipeRowHtml(v) {
+  v = v || { name: '', qty: '', unit: '', category: '' };
+  return `<div class="add-row-form rc-row" style="margin-top:8px;">
+    <div class="field f-name" style="margin:0;"><input type="text" placeholder="Bezeichnung" data-f="name" value="${escapeHtml(v.name)}"></div>
+    <div class="field f-qty" style="margin:0;"><input type="number" step="any" min="0" placeholder="Menge" data-f="qty" value="${v.qty || ''}"></div>
+    <div class="field f-unit" style="margin:0;"><input type="text" list="unitOptions" placeholder="Einheit" data-f="unit" value="${escapeHtml(v.unit)}"></div>
+    <div class="field f-unit" style="margin:0;"><input type="text" list="categoryOptions" placeholder="Kategorie" data-f="category" value="${escapeHtml(v.category)}"></div>
+    <button type="button" class="icon-btn del" onclick="this.closest('.rc-row').remove()" title="Zeile entfernen">✕</button>
+  </div>`;
+}
+function addRecipeRow(v) { $('rcRows').insertAdjacentHTML('beforeend', recipeRowHtml(v)); }
+function openRecipeDialog(id) {
+  if (!canManageRecipes()) return;
+  recipeEditId = id;
+  const r = id ? db.recipes.find(x => x.id === id) : null;
+  $('recipeDialogTitle').textContent = r ? 'Rezept bearbeiten' : 'Rezept anlegen';
+  $('rcName').value = r ? r.name : '';
+  $('rcNote').value = r ? r.note || '' : '';
+  $('rcPaste').value = '';
+  $('rcRows').innerHTML = '';
+  const items = r ? db.recipeItems.filter(x => x.recipe_id === r.id) : [];
+  (items.length ? items : [null]).forEach(addRecipeRow);
+  recipeDialog.showModal(); $('rcName').focus();
+}
+// Erkennt Zeilen wie "400 g Hackfleisch", "2 Zwiebeln" oder "1 Dose Kidneybohnen"
+function parseIngredientLine(line) {
+  const knownUnits = new Set([...Object.keys(UNITS), 'el', 'tl', 'stk', 'bund', 'prise', 'dose', 'glas', 'packung', 'scheibe', 'zehe', 'blatt', 'würfel', 'tasse', 'flasche']);
+  const m = line.trim().match(/^([\d.,]+)\s*([a-zA-ZäöüÄÖÜß]*)\s*(.*)$/);
+  if (!m || !m[1]) return { name: line.trim(), qty: 1, unit: '', category: '' };
+  const qty = parseFloat(m[1].replace(',', '.')) || 0;
+  const maybeUnit = m[2] || '';
+  const isUnit = knownUnits.has(maybeUnit.toLowerCase());
+  const name = (isUnit ? m[3] : [maybeUnit, m[3]].filter(Boolean).join(' ')).trim();
+  return { name: name || line.trim(), qty: qty || 1, unit: isUnit ? maybeUnit : '', category: '' };
+}
+function importPastedIngredients() {
+  const lines = $('rcPaste').value.split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return;
+  lines.forEach(l => addRecipeRow(parseIngredientLine(l)));
+  $('rcPaste').value = '';
+}
+async function saveRecipe() {
+  const name = $('rcName').value.trim();
+  if (!name) { $('rcName').focus(); return; }
+  const note = $('rcNote').value.trim();
+  const rows = readRecipeRows();
+  recipeDialog.close();
+  if (recipeEditId) {
+    const r1 = await sb.from('recipes').update({ name, note }).eq('id', recipeEditId);
+    if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
+    const r2 = await sb.from('recipe_items').delete().eq('recipe_id', recipeEditId);
+    if (r2.error) { toast('Fehler: ' + friendlyError(r2.error), null, null, true); await refresh(); return; }
+    if (rows.length) {
+      const r3 = await sb.from('recipe_items').insert(rows.map(x => ({ ...x, recipe_id: recipeEditId })));
+      if (r3.error) { toast('Fehler: ' + friendlyError(r3.error), null, null, true); }
+    }
+  } else {
+    const id = uuid();
+    const r1 = await sb.from('recipes').insert({ id, name, note });
+    if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
+    if (rows.length) {
+      const r2 = await sb.from('recipe_items').insert(rows.map(x => ({ ...x, recipe_id: id })));
+      if (r2.error) { toast('Fehler: ' + friendlyError(r2.error), null, null, true); }
+    }
+  }
+  await refresh();
+}
+function deleteRecipe(id) {
+  const r = db.recipes.find(x => x.id === id); if (!r) return;
+  openConfirm(`Rezept „${r.name}“ endgültig löschen?`, () => mutate(sb.from('recipes').delete().eq('id', id)), 'Endgültig löschen');
+}
+
+let addRecipeSourceId = null;
+function openAddRecipeToProject(id) {
+  const r = db.recipes.find(x => x.id === id); if (!r) return;
+  addRecipeSourceId = id;
+  $('rpListName').value = r.name;
+  const targets = visibleProjects().filter(p => canEdit(p));
+  $('rpProject').innerHTML = targets.length
+    ? targets.map(p => `<option value="${p.id}" ${p.id === ui.projectId ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')
+    : '';
+  if (!targets.length) { toast('Du bist in keinem Projekt Bearbeiter oder Admin.', null, null, true); return; }
+  addRecipeToProjectDialog.showModal(); $('rpListName').focus(); $('rpListName').select();
+}
+async function saveAddRecipeToProject() {
+  const name = $('rpListName').value.trim();
+  const pid = $('rpProject').value;
+  if (!name || !pid) { $('rpListName').focus(); return; }
+  const items = db.recipeItems.filter(x => x.recipe_id === addRecipeSourceId);
+  addRecipeToProjectDialog.close();
+  const newId = uuid();
+  const r1 = await sb.from('lists').insert({ id: newId, project_id: pid, name });
+  if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
+  if (items.length) {
+    const r2 = await sb.from('items').insert(items.map(i => ({ project_id: pid, list_id: newId, name: i.name, qty: i.qty, unit: i.unit, category: i.category })));
+    if (r2.error) { toast('Liste angelegt, Zutaten aber nicht: ' + friendlyError(r2.error), null, null, true); }
+  }
+  ui.view = 'project'; ui.projectId = pid; ui.tab = 'lists'; saveUi();
+  await refresh();
+  toast('Rezept als Liste hinzugefügt.');
+}
+
+
 function handleSuggest(input, pid, field) {
   const slot = input.closest('.field').querySelector('.suggest-slot');
   const s = field === 'name' ? findSimilarIngredient(pid, input.value) : findSimilarSupplier(pid, input.value);
@@ -1237,7 +1478,7 @@ function openEditList(id) {
   const l = findList(id); const p = l && findProject(l.project_id);
   if (!l || !p || !canEdit(p)) return;
   editListTargetId = id;
-  $('elName').value = l.name;
+  $('elName').value = l.name; $('elNote').value = l.note || '';
   editListDialog.showModal(); $('elName').focus();
 }
 async function saveEditList() {
@@ -1245,8 +1486,9 @@ async function saveEditList() {
   if (!l) { editListDialog.close(); return; }
   const name = $('elName').value.trim();
   if (!name) { $('elName').focus(); return; }
+  const note = $('elNote').value.trim();
   editListDialog.close();
-  await mutate(sb.from('lists').update({ name }).eq('id', l.id));
+  await mutate(sb.from('lists').update({ name, note }).eq('id', l.id));
 }
 async function deleteList(id) {
   const l = findList(id); if (!l) return;
@@ -1283,7 +1525,7 @@ async function saveCopyList() {
   const r1 = await sb.from('lists').insert({ id: newId, project_id: pid, name });
   if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
   if (rows.length) {
-    const r2 = await sb.from('items').insert(rows.map(i => ({ project_id: pid, list_id: newId, name: i.name, qty: i.qty, unit: i.unit, supplier: i.supplier, bought: false })));
+    const r2 = await sb.from('items').insert(rows.map(i => ({ project_id: pid, list_id: newId, name: i.name, qty: i.qty, unit: i.unit, supplier: i.supplier, category: i.category, note: i.note, bought: false })));
     if (r2.error) { toast('Liste kopiert, aber Zutaten nicht: ' + friendlyError(r2.error), null, null, true); }
   }
   await refresh();
@@ -1303,7 +1545,8 @@ function addItem(ev, listId) {
   pendingFocusListId = listId;
   mutate(sb.from('items').insert({
     project_id: list.project_id, list_id: listId, name, qty,
-    unit: f.elements['unit'].value.trim(), supplier: f.elements['supplier'].value.trim()
+    unit: f.elements['unit'].value.trim(), supplier: f.elements['supplier'].value.trim(),
+    category: f.elements['category'].value.trim(), note: f.elements['note'].value.trim()
   }));
   return false;
 }
@@ -1314,6 +1557,7 @@ function openEditItem(id) {
   if (!it || !p || !canEdit(p)) return;
   editItemTargetId = id;
   $('eiName').value = it.name; $('eiQty').value = it.qty; $('eiUnit').value = it.unit || ''; $('eiSupplier').value = it.supplier || '';
+  $('eiCategory').value = it.category || ''; $('eiNote').value = it.note || '';
   $('supplierOptionsDialog').innerHTML = projectSupplierNames(p.id).map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
   editItemDialog.showModal(); $('eiName').focus();
 }
@@ -1324,7 +1568,7 @@ async function saveEditItem() {
   const qty = parseFloat($('eiQty').value);
   if (!name) { $('eiName').focus(); return; }
   if (isNaN(qty) || qty < 0) { $('eiQty').focus(); toast('Die Anzahl muss eine Zahl von 0 oder größer sein.', null, null, true); return; }
-  const patch = { name, qty, unit: $('eiUnit').value.trim(), supplier: $('eiSupplier').value.trim() };
+  const patch = { name, qty, unit: $('eiUnit').value.trim(), supplier: $('eiSupplier').value.trim(), category: $('eiCategory').value.trim(), note: $('eiNote').value.trim() };
   editItemDialog.close();
   await mutate(sb.from('items').update(patch).eq('id', it.id));
 }
