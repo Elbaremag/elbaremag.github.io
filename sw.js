@@ -1,6 +1,6 @@
 // Kombüse Service Worker: macht die App installierbar und lädt die Oberfläche
 // auch bei schlechter Verbindung. Daten (Supabase) werden bewusst NICHT zwischengespeichert.
-const CACHE = 'kombuese-v1';
+const CACHE = 'kombuese-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {

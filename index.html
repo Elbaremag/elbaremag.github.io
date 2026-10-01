@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kombüse — Küchenplaner</title>
-<meta name="theme-color" content="#2C5F8A">
+<meta name="theme-color" content="#4F46E5">
 <meta name="description" content="Gemeinsame Küchen- und Einkaufsplanung">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -14,35 +14,40 @@
 <meta name="apple-mobile-web-app-title" content="Kombüse">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
 
-    --paper: #F5F1E4;
+    --paper: #F4F5F8;
     --panel: #FFFFFF;
-    --ink: #26332B;
-    --ink-soft: #5B6B60;
-    --ink-faint: #8B9186;
-    --line: #D9D2BE;
-    --accent: #2C5F8A;
-    --accent-dark: #1F4A6E;
-    --accent-soft: #D9E6F0;
-    --sage: #4C6B4B;
-    --sage-soft: #E4ECE2;
-    --warn: #B23A2E;
-    --warn-soft: #F6E2DE;
-    --font-display: 'Fraunces', 'Iowan Old Style', serif;
+    --surface-alt: #EAEBF0;
+    --ink: #14171F;
+    --ink-soft: #5C6474;
+    --ink-faint: #98A0B3;
+    --line: #E3E6ED;
+    --accent: #4F46E5;
+    --accent-dark: #4338CA;
+    --accent-soft: #EEF0FF;
+    --sage: #16A34A;
+    --sage-soft: #E9F9EE;
+    --warn: #DC2626;
+    --warn-soft: #FDECEC;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06);
+    --font-display: 'Inter', -apple-system, 'Segoe UI', sans-serif;
     --font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #1B211C; --panel: #232A23; --ink: #EDEDE3; --ink-soft: #AEB6A9; --ink-faint: #7C857A;
-      --line: #3A4239; --accent: #5B9BD5; --accent-dark: #7FB3E0; --accent-soft: #1E3548;
-      --sage: #8FB48C; --sage-soft: #253326; --warn: #E0776A; --warn-soft: #3A2624;
+      --paper: #10121A; --panel: #1B1E29; --surface-alt: #242836; --ink: #EDEEF3; --ink-soft: #AAB0C0; --ink-faint: #6D7386;
+      --line: #2C3040; --accent: #8B85F0; --accent-dark: #A5A0F5; --accent-soft: #262A45;
+      --sage: #4ADE80; --sage-soft: #16311F; --warn: #F87171; --warn-soft: #3A1E1E;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.35);
     }
   }
 
@@ -52,112 +57,127 @@
     margin: 0; background: var(--paper); color: var(--ink);
     font-family: var(--font-body); font-size: 15px; line-height: 1.5;
     scroll-padding-top: env(safe-area-inset-top, 0px);
+    -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; letter-spacing: -0.01em; }
   button { font-family: var(--font-body); cursor: pointer; }
   input, select { font-family: var(--font-body); }
 
   /* ---------- Vollbild-Karten: Laden / Login / Wartet ---------- */
   .screen-center { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 24px; }
   .login-card {
-    width: 100%; max-width: 380px; background: var(--panel);
-    border: 1px solid var(--line); padding: 36px 32px;
+    width: 100%; max-width: 400px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 36px 32px;
   }
-  .login-card .mark { font-family: var(--font-display); font-style: italic; font-size: 15px; color: var(--accent-dark); margin-bottom: 4px; }
+  .login-card .mark { font-weight: 800; font-size: 15px; letter-spacing: -0.01em; color: var(--accent-dark); margin-bottom: 4px; }
   .brand-mark { display: block; margin-bottom: 10px; }
   .login-error, .login-info {
-    font-size: 13px; padding: 8px 12px; margin: 0 0 16px; border: 1px solid;
+    font-size: 13px; padding: 9px 12px; margin: 0 0 16px; border: 1px solid; border-radius: var(--radius-sm);
   }
   .login-error { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
   .login-info { background: var(--sage-soft); color: var(--sage); border-color: var(--sage); }
-  .login-card h1 { font-size: 28px; margin-bottom: 6px; }
+  .login-card h1 { font-size: 26px; margin-bottom: 6px; }
   .login-card p.sub { color: var(--ink-soft); margin: 0 0 24px; font-size: 14px; }
   .link-btn { background: none; border: none; color: var(--accent-dark); text-decoration: underline; font-size: 13px; padding: 10px 0 0; }
   .login-hint { margin-top: 14px; font-size: 12px; color: var(--ink-faint); line-height: 1.6; }
 
   .field { margin-bottom: 16px; }
-  .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
-  .field select, .field input {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--line);
-    background: var(--paper); color: var(--ink); font-size: 14px;
+  .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; font-weight: 500; }
+  .field select, .field input, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: var(--panel); color: var(--ink); font-size: 14px;
   }
-  .field select:focus, .field input:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field select:focus, .field input:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     padding: 10px 18px; border: 1px solid var(--accent); background: var(--accent);
-    color: #fff; font-size: 14px; font-weight: 500; border-radius: 2px;
+    color: #fff; font-size: 14px; font-weight: 600; border-radius: var(--radius-sm);
   }
   .btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
-  .btn.secondary { background: transparent; color: var(--ink); border-color: var(--line); }
-  .btn.secondary:hover { border-color: var(--ink-faint); }
+  .btn.secondary { background: var(--panel); color: var(--ink); border-color: var(--line); }
+  .btn.secondary:hover { border-color: var(--ink-faint); background: var(--paper); }
   .btn.danger { background: transparent; color: var(--warn); border-color: var(--warn-soft); }
   .btn.danger:hover { background: var(--warn-soft); }
   .btn.small { padding: 6px 12px; font-size: 13px; }
   .btn:disabled { opacity: .45; cursor: not-allowed; }
 
   /* ---------- App-Rahmen ---------- */
-  #app { display: none; min-height: 100vh; grid-template-columns: 250px 1fr; }
+  #app { display: none; min-height: 100vh; grid-template-columns: 300px 1fr; }
   #app.active { display: grid; }
   #sidebar {
     background: var(--panel); border-right: 1px solid var(--line);
-    padding: 20px 18px; display: flex; flex-direction: column;
+    padding: 20px 16px; display: flex; flex-direction: column;
     padding-top: calc(20px + env(safe-area-inset-top, 0px));
   }
-  #sidebar .mark { font-family: var(--font-display); font-style: italic; color: var(--accent-dark); font-size: 15px; }
+  #sidebar .mark { font-weight: 800; letter-spacing: -0.01em; color: var(--accent-dark); font-size: 15px; }
   .sidebar-brand { display: flex; align-items: center; gap: 8px; }
-  #sidebar h2.title { font-size: 21px; margin: 2px 0 22px; }
-  .side-section-label { font-size: 12px; color: var(--ink-faint); margin: 18px 0 8px; }
+  #sidebar h2.title { font-size: 20px; margin: 2px 0 20px; }
+  .side-section-label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin: 18px 0 8px; font-weight: 600; }
   .project-item {
     display: block; width: 100%; text-align: left; background: none; border: none;
-    padding: 9px 10px; margin-bottom: 2px; color: var(--ink); font-size: 14px;
-    border-left: 2px solid transparent;
+    padding: 9px 12px; margin-bottom: 2px; color: var(--ink); font-size: 14px;
+    border-radius: var(--radius-sm); white-space: normal; word-break: break-word; line-height: 1.35;
   }
   .project-item:hover { background: var(--paper); }
-  .project-item.active { background: var(--sage-soft); border-left-color: var(--sage); font-weight: 500; }
+  .project-item.active { background: var(--accent-soft); color: var(--accent-dark); font-weight: 600; }
   .sidebar-spacer { flex: 1; min-height: 16px; }
   .user-box { border-top: 1px solid var(--line); padding-top: 14px; font-size: 13px; }
   .user-box .name { font-weight: 600; }
+  .user-row { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-soft); color: var(--accent-dark); font-weight: 700; font-size: 13px;
+  }
+  .avatar.small { width: 24px; height: 24px; font-size: 10.5px; }
   .role-badge {
-    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 20px;
     margin-top: 4px; background: var(--accent-soft); color: var(--accent-dark); font-weight: 600;
   }
   .role-badge.viewer { background: var(--sage-soft); color: var(--sage); }
-  .role-badge.lead { background: #D6EAEF; color: #1F6E82; }
-  .role-badge.admin { background: #EADFF0; color: #7A4FA0; }
+  .role-badge.lead { background: #E0E9FF; color: #3B4CCA; }
+  .role-badge.admin { background: #F3E8FF; color: #7E22CE; }
   .role-badge.pending { background: var(--warn-soft); color: var(--warn); }
+  .role-desc { font-size: 11.5px; color: var(--ink-faint); margin-top: 4px; line-height: 1.5; }
 
   #main { padding: 28px 36px; padding-top: calc(28px + env(safe-area-inset-top, 0px)); overflow-x: hidden; }
   .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 16px; flex-wrap: wrap; }
-  .topbar h1 { font-size: 26px; }
+  .topbar h1 { font-size: 24px; }
   .topbar .desc { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
-  .tabs { display: flex; gap: 4px; margin: 22px 0 22px; border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; gap: 2px; margin: 22px 0 22px; background: var(--surface-alt); padding: 4px; border-radius: var(--radius-sm); width: fit-content; max-width: 100%; }
   .tab {
-    background: none; border: none; padding: 10px 4px; margin-right: 22px; font-size: 14px;
-    color: var(--ink-soft); border-bottom: 2px solid transparent; position: relative; top: 1px;
+    background: none; border: none; padding: 8px 14px; font-size: 13.5px; border-radius: 7px;
+    color: var(--ink-soft); font-weight: 500;
   }
-  .tab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab.active { color: var(--ink); background: var(--panel); font-weight: 600; box-shadow: var(--shadow); }
 
   .empty-state { padding: 60px 20px; text-align: center; color: var(--ink-soft); }
-  .empty-state h3 { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: 19px; margin-bottom: 8px; color: var(--ink); }
+  .empty-state h3 { font-weight: 700; font-size: 18px; margin-bottom: 8px; color: var(--ink); }
 
-  .panel { background: var(--panel); border: 1px solid var(--line); margin-bottom: 22px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 18px; overflow: hidden; }
   .panel-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); gap: 8px; }
-  .panel-head h3 { font-size: 16px; font-weight: 500; }
+  .panel-head h3 { font-size: 15.5px; font-weight: 600; }
   .panel-head .meta, .meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
   .panel-body { padding: 16px 18px; }
+  .drag-handle { cursor: grab; color: var(--ink-faint); padding: 4px 6px; font-size: 15px; }
+  .chevron-btn { background: none; border: none; color: var(--ink-faint); font-size: 13px; padding: 4px 6px; transition: transform .15s; }
+  .chevron-btn.open { transform: rotate(90deg); }
+  .panel.dragging { opacity: .4; }
 
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  thead th { text-align: left; font-weight: 500; color: var(--ink-soft); font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  thead th { text-align: left; font-weight: 600; color: var(--ink-soft); font-size: 11.5px; padding: 6px 8px; border-bottom: 1px solid var(--line); text-transform: uppercase; letter-spacing: .02em; }
+  thead th.num { text-align: right; min-width: 82px; }
   tbody td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; min-width: 82px; }
   td.mark-col { text-align: center; color: var(--sage); font-weight: 600; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
   th.mark-head { text-align: center; border-left: 1px solid var(--line); border-right: 1px solid var(--line); max-width: 110px; }
   tr td.mark-col:nth-child(even), tr th.mark-head:nth-child(even) { background: var(--sage-soft); }
   .overflow-wrap { overflow-x: auto; }
-  input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+  input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
   tr.done td { color: var(--ink-faint); text-decoration: line-through; }
   tr.done td:first-child { text-decoration: none; }
+  tr.selected td { background: var(--accent-soft); }
 
   .add-row-form { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: flex-end; }
   .add-row-form .field { margin: 0; }
@@ -168,18 +188,27 @@
 
   .suggest-chip {
     position: absolute; top: 100%; left: 0; margin-top: 4px; background: var(--warn-soft);
-    color: var(--warn); border: 1px solid var(--warn); padding: 6px 10px; font-size: 12.5px;
+    color: var(--warn); border: 1px solid var(--warn); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 12.5px;
     z-index: 5; display: flex; align-items: center; gap: 8px; white-space: nowrap;
   }
   .suggest-chip button { background: none; border: none; color: var(--warn); text-decoration: underline; font-size: 12.5px; padding: 0; }
 
-  .icon-btn { background: none; border: none; color: var(--ink-faint); padding: 4px 6px; font-size: 13px; }
-  .icon-btn:hover { color: var(--accent-dark); }
-  .icon-btn.del:hover { color: var(--warn); }
+  .icon-btn { background: none; border: none; color: var(--ink-faint); padding: 5px 7px; font-size: 13px; border-radius: 7px; }
+  .icon-btn:hover { color: var(--accent-dark); background: var(--accent-soft); }
+  .icon-btn.del:hover { color: var(--warn); background: var(--warn-soft); }
 
-  dialog { border: 1px solid var(--line); padding: 0; max-width: 420px; width: 90%; background: var(--panel); color: var(--ink); }
+  .bulk-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--accent-dark); color: #fff; padding: 10px 16px; border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .bulk-bar input, .bulk-bar select { border-radius: var(--radius-sm); border: none; padding: 7px 10px; font-size: 13px; }
+  .bulk-bar .btn.secondary { background: rgba(255,255,255,.15); color: #fff; border-color: transparent; }
+  .bulk-bar .btn.secondary:hover { background: rgba(255,255,255,.25); }
+  .added-by { color: var(--ink-faint); font-size: 12px; }
+
+  dialog { border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 0; max-width: 420px; width: 90%; background: var(--panel); color: var(--ink); }
   dialog.wide { max-width: 600px; }
-  dialog::backdrop { background: rgba(20,20,15,0.35); }
+  dialog::backdrop { background: rgba(15,17,25,0.45); }
   .dialog-head { padding: 16px 20px; border-bottom: 1px solid var(--line); }
   .dialog-head h3 { font-size: 17px; }
   .dialog-body { padding: 18px 20px; }
@@ -189,7 +218,7 @@
 
   .member-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; gap: 10px; }
   .member-row:last-child { border-bottom: none; }
-  .member-row select { padding: 4px 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 13px; }
+  .member-row select { padding: 5px 9px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); color: var(--ink); font-size: 13px; }
   .aggregate-total { font-weight: 600; }
   .supplier-list { color: var(--ink-soft); font-size: 12.5px; }
   .sup-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
@@ -245,7 +274,7 @@
 
   @media print {
     body { background: #fff; }
-    #sidebar, .mobile-topbar, .topbar .btn, .tabs, .no-print, .add-row-form, .icon-btn, .toast { display: none !important; }
+    #sidebar, .mobile-topbar, .topbar .btn, .tabs, .no-print, .add-row-form, .icon-btn, .toast, .added-by, .drag-handle, .chevron-btn { display: none !important; }
     #main { padding: 0; }
     .panel { border: none; margin-bottom: 28px; break-inside: avoid; }
     .panel-body { padding: 0; }
@@ -286,8 +315,8 @@
     <p class="sub">Melde dich an, um Projekte und Zutatenlisten zu bearbeiten.</p>
     <form onsubmit="doLogin(); return false;">
       <div class="field">
-        <label for="loginEmail">E-Mail</label>
-        <input type="email" id="loginEmail" autocomplete="username" required>
+        <label for="loginEmail">E-Mail oder Benutzername</label>
+        <input type="text" id="loginEmail" autocomplete="username" required>
       </div>
       <div class="field">
         <label for="loginPass">Passwort</label>
@@ -297,10 +326,27 @@
       <div id="loginInfo" class="login-info" style="display:none;"></div>
       <button class="btn" style="width:100%" type="submit" id="loginBtn">Anmelden</button>
     </form>
-    <button class="link-btn" type="button" onclick="forgotPassword()">Passwort vergessen?</button>
-    <div class="login-hint">Konten werden vom Admin angelegt. Eine Selbstregistrierung gibt es nicht.</div>
+    <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+      <button class="link-btn" type="button" onclick="forgotPassword()">Passwort vergessen?</button>
+      <button class="link-btn" type="button" onclick="openRegisterDialog()">Konto registrieren</button>
+    </div>
+    <div class="login-hint">Neue Konten warten nach der Registrierung auf Freischaltung durch einen Admin.</div>
   </div>
 </div>
+
+<dialog id="registerDialog">
+  <div class="dialog-head"><h3>Konto registrieren</h3></div>
+  <div class="dialog-body">
+    <div class="field"><label for="regName">Name</label><input id="regName" type="text"></div>
+    <div class="field"><label for="regEmail">E-Mail</label><input id="regEmail" type="email" autocomplete="username"></div>
+    <div class="field" style="margin-bottom:0;"><label for="regPass">Passwort (mindestens 6 Zeichen)</label><input id="regPass" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()"></div>
+    <div id="regError" class="login-error" style="display:none; margin-top:14px;"></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="registerDialog.close()">Abbrechen</button>
+    <button class="btn" id="regBtn" onclick="submitRegister()">Registrieren</button>
+  </div>
+</dialog>
 
 <!-- ============ WARTET AUF FREISCHALTUNG ============ -->
 <div id="pendingScreen" class="screen-center">
@@ -325,7 +371,7 @@
         <path d="M14 27h28v9c0 6.6-6.3 12-14 12s-14-5.4-14-12v-9z" stroke="var(--ink)" stroke-width="2.6" stroke-linejoin="round"/>
         <line x1="12" y1="27" x2="44" y2="27" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
       </svg>
-      <div class="mark" style="font-family:var(--font-display); font-style:italic; color:var(--accent-dark); font-size:15px;">Kombüse</div>
+      <div class="mark">Kombüse</div>
     </div>
     <div style="width:34px;"></div>
   </div>
@@ -352,15 +398,22 @@
     <button class="project-item" id="recipesNavBtn" onclick="openRecipesView()">📖 Rezepte</button>
     <div class="sidebar-spacer"></div>
     <div class="user-box">
-      <div class="name" id="curUserName"></div>
-      <span class="role-badge" id="curUserRole"></span>
-      <div id="liveStatus" style="font-size:11.5px; margin-top:6px; color:var(--ink-faint);"></div>
+      <div class="user-row">
+        <div class="avatar" id="curUserAvatar"></div>
+        <div>
+          <div class="name" id="curUserName"></div>
+          <span class="role-badge" id="curUserRole"></span>
+        </div>
+      </div>
+      <div class="role-desc" id="curUserRoleDesc"></div>
+      <div id="liveStatus" style="font-size:11.5px; margin-top:8px; color:var(--ink-faint);"></div>
       <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn secondary small" id="adminBtn" onclick="openUserAdmin()" style="display:none;">Verwaltung</button>
-        <button class="btn secondary small" onclick="openPasswordDialog(false)">Passwort</button>
+        <button class="btn secondary small" onclick="openProfileDialog()">Profil</button>
         <button class="btn secondary small" onclick="doLogout()">Abmelden</button>
         <button class="btn secondary small" id="installBtn" onclick="installApp()" style="display:none;">App installieren</button>
       </div>
+      <div class="meta" id="versionLine" style="margin-top:12px; display:flex; align-items:center; gap:6px;"></div>
     </div>
   </div>
 
@@ -420,14 +473,31 @@
 <dialog id="recipeDialog" class="wide">
   <div class="dialog-head"><h3 id="recipeDialogTitle">Rezept anlegen</h3></div>
   <div class="dialog-body">
-    <div class="field"><label for="rcName">Name</label><input id="rcName" type="text" placeholder="z. B. Chili sin Carne"></div>
-    <div class="field"><label for="rcNote">Notiz (optional)</label><input id="rcNote" type="text" placeholder="Quelle, Hinweise …"></div>
+    <div class="field">
+      <label for="rcName">Name</label><input id="rcName" type="text" placeholder="z. B. Chili sin Carne"></div>
+    <div class="add-row-form" style="margin:0 0 16px;">
+      <div class="field f-unit" style="margin:0;"><label>Art</label><input id="rcCategory" type="text" list="recipeTypeOptions" placeholder="z. B. Hauptgericht"></div>
+      <div class="field f-unit" style="margin:0;"><label>Portionen</label><input id="rcServings" type="number" min="1" step="1" placeholder="z. B. 4"></div>
+      <div class="field f-supplier" style="margin:0;"><label>Notiz (optional)</label><input id="rcNote" type="text" placeholder="Quelle, Hinweise …"></div>
+    </div>
+    <div class="field">
+      <label>Bild (optional)</label>
+      <div id="rcImagePreviewWrap" style="display:none; margin-bottom:8px;">
+        <img id="rcImagePreview" style="max-width:160px; max-height:160px; display:block; border:1px solid var(--line);">
+        <button type="button" class="link-btn" style="padding-top:6px;" onclick="removeRecipeImage()">Bild entfernen</button>
+      </div>
+      <input id="rcImageFile" type="file" accept="image/*" onchange="handleRecipeImage(event)">
+    </div>
     <div class="meta" style="margin-bottom:6px;">Zutaten</div>
     <div id="rcRows"></div>
     <button class="btn secondary small" type="button" onclick="addRecipeRow()" style="margin-top:6px;">+ Zutat</button>
-    <div class="meta" style="margin-top:6px;">Zeilen im Format „Menge Einheit Bezeichnung“ einfügen (z. B. aus einem Rezept-Text) — eine Zutat pro Zeile:</div>
+    <div class="meta" style="margin-top:14px;">Zeilen im Format „Menge Einheit Bezeichnung“ einfügen — eine Zutat pro Zeile:</div>
     <textarea id="rcPaste" rows="3" style="width:100%; margin-top:6px; padding:8px 10px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font-family:inherit; font-size:13.5px;" placeholder="400 g Hackfleisch&#10;1 Dose Kidneybohnen&#10;2 Zwiebeln"></textarea>
     <button class="btn secondary small" type="button" onclick="importPastedIngredients()" style="margin-top:6px;">Einfügen übernehmen</button>
+    <div class="field" style="margin-top:16px; margin-bottom:0;">
+      <label for="rcInstructions">Anleitung (optional)</label>
+      <textarea id="rcInstructions" rows="6" style="width:100%; padding:8px 10px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font-family:inherit; font-size:13.5px;" placeholder="Zubereitungsschritte, ein Schritt pro Zeile …"></textarea>
+    </div>
   </div>
   <div class="dialog-actions">
     <button class="btn secondary" onclick="recipeDialog.close()">Abbrechen</button>
@@ -440,11 +510,26 @@
   <div class="dialog-body">
     <p style="font-size:13px; color:var(--ink-soft); margin:0 0 14px;">Legt eine neue Liste mit allen Zutaten des Rezepts an.</p>
     <div class="field"><label for="rpListName">Name der neuen Liste</label><input id="rpListName" type="text"></div>
+    <div class="field" id="rpServingsField" style="display:none;">
+      <label for="rpServings">Für wie viele Personen? (Mengen werden hochgerechnet)</label>
+      <input id="rpServings" type="number" min="1" step="1">
+    </div>
     <div class="field" style="margin-bottom:0;"><label for="rpProject">In Projekt</label><select id="rpProject"></select></div>
   </div>
   <div class="dialog-actions">
     <button class="btn secondary" onclick="addRecipeToProjectDialog.close()">Abbrechen</button>
     <button class="btn" onclick="saveAddRecipeToProject()">Hinzufügen</button>
+  </div>
+</dialog>
+
+<dialog id="newSupplierInlineDialog">
+  <div class="dialog-head"><h3>Neuer Lieferant</h3></div>
+  <div class="dialog-body">
+    <div class="field" style="margin-bottom:0;"><label for="newSupplierInlineName">Name</label><input id="newSupplierInlineName" type="text" onkeydown="if(event.key==='Enter')saveNewSupplierInline()"></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="cancelNewSupplierInline()">Abbrechen</button>
+    <button class="btn" onclick="saveNewSupplierInline()">Anlegen</button>
   </div>
 </dialog>
 
@@ -454,10 +539,9 @@
     <div class="field"><label for="eiName">Bezeichnung</label><input id="eiName" type="text"></div>
     <div class="field"><label for="eiQty">Anzahl</label><input id="eiQty" type="number" step="any" min="0"></div>
     <div class="field"><label for="eiUnit">Einheit</label><input id="eiUnit" type="text" list="unitOptions"></div>
-    <div class="field"><label for="eiSupplier">Lieferant</label><input id="eiSupplier" type="text" list="supplierOptionsDialog"></div>
+    <div class="field"><label for="eiSupplier">Lieferant</label><select id="eiSupplier" onchange="handleSupplierSelect(this)"></select></div>
     <div class="field"><label for="eiCategory">Kategorie (für den Einkauf)</label><input id="eiCategory" type="text" list="categoryOptions"></div>
     <div class="field" style="margin-bottom:0;"><label for="eiNote">Notiz (optional)</label><input id="eiNote" type="text" placeholder="z. B. bitte Bio"></div>
-    <datalist id="supplierOptionsDialog"></datalist>
   </div>
   <div class="dialog-actions">
     <button class="btn secondary" onclick="editItemDialog.close()">Abbrechen</button>
@@ -485,6 +569,26 @@
   <div class="dialog-actions">
     <button class="btn secondary" id="pwCancel" onclick="passwordDialog.close()">Abbrechen</button>
     <button class="btn" onclick="savePassword()">Speichern</button>
+  </div>
+</dialog>
+
+<dialog id="profileDialog">
+  <div class="dialog-head"><h3>Mein Profil</h3></div>
+  <div class="dialog-body">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+      <div class="avatar" id="pfAvatarPreview" style="width:56px; height:56px; font-size:18px;"></div>
+      <div>
+        <input id="pfAvatarFile" type="file" accept="image/*" onchange="handleProfileAvatar(event)">
+        <div><button type="button" class="link-btn" style="padding-top:4px;" id="pfAvatarRemoveBtn" onclick="removeProfileAvatar()">Bild entfernen</button></div>
+      </div>
+    </div>
+    <div class="field"><label for="pfName">Name</label><input id="pfName" type="text"></div>
+    <div class="field" style="margin-bottom:0;"><label>Anmeldung</label><input type="text" id="pfLoginInfo" disabled></div>
+  </div>
+  <div class="dialog-actions">
+    <button class="btn secondary" onclick="profileDialog.close(); openPasswordDialog(false)">Passwort ändern</button>
+    <button class="btn secondary" onclick="profileDialog.close()">Abbrechen</button>
+    <button class="btn" onclick="saveProfile()">Speichern</button>
   </div>
 </dialog>
 
@@ -520,29 +624,59 @@
   <option value="Drogerie &amp; Sonstiges"></option>
 </datalist>
 
+<datalist id="recipeTypeOptions">
+  <option value="Frühstück"></option>
+  <option value="Vorspeise"></option>
+  <option value="Hauptgericht"></option>
+  <option value="Beilage"></option>
+  <option value="Dessert"></option>
+  <option value="Getränk"></option>
+  <option value="Sonstiges"></option>
+</datalist>
+
 <dialog id="userAdminDialog" class="wide">
   <div class="dialog-head"><h3>Systemverwaltung</h3></div>
   <div class="dialog-body">
+    <div class="meta" style="margin-bottom:10px;">Rollen</div>
+    <div id="roleLegend" style="margin-bottom:18px;"></div>
+
     <div class="meta" style="margin-bottom:10px;">Benutzer</div>
     <div id="userAdminList"></div>
     <div class="meta" style="margin:18px 0 6px;">Neuen Benutzer anlegen</div>
+    <label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:10px;">
+      <input type="checkbox" id="newUserLocal" onchange="toggleNewUserLocal()"> Lokales Konto ohne E-Mail (nur Benutzername, kein „Passwort vergessen“ möglich)
+    </label>
     <div class="add-row-form" style="margin-top:6px;">
       <div class="field f-name"><label>Name</label><input id="newUserName" placeholder="Name"></div>
-      <div class="field f-name"><label>E-Mail</label><input id="newUserEmail" type="email" placeholder="name@beispiel.de"></div>
+      <div class="field f-name" id="newUserEmailField"><label>E-Mail</label><input id="newUserEmail" type="email" placeholder="name@beispiel.de"></div>
+      <div class="field f-name" id="newUserUsernameField" style="display:none;"><label>Benutzername</label><input id="newUserUsername" placeholder="z. B. papa"></div>
       <div class="field f-supplier"><label>Start-Passwort</label><input id="newUserPassword" type="text" placeholder="min. 6 Zeichen"></div>
       <div class="field f-unit" style="width:130px;"><label>Rolle</label>
         <select id="newUserRole">
           <option value="viewer">Betrachter</option>
           <option value="editor">Bearbeiter</option>
           <option value="lead">Projektleiter</option>
-          <option value="admin">Über-Admin</option>
+          <option value="admin">Admin</option>
         </select>
       </div>
       <button class="btn small" id="createUserBtn" onclick="createUser()">Anlegen</button>
     </div>
 
+    <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">Lieferanten-Stammliste</div>
+    <div id="supplierAdminList"></div>
+    <div class="add-row-form" style="margin-top:10px;">
+      <div class="field f-name"><label>Neuer Lieferant</label><input id="newSupplierName" placeholder="Name" onkeydown="if(event.key==='Enter')createSupplier()"></div>
+      <button class="btn small" onclick="createSupplier()">Anlegen</button>
+    </div>
+
     <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">Alle Projekte</div>
     <div id="allProjectsList"></div>
+
+    <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">App-Version</div>
+    <div class="add-row-form" style="margin-top:0;">
+      <div class="field f-name" style="max-width:160px;"><input id="versionInput" type="text"></div>
+      <button class="btn secondary small" onclick="saveVersion()">Speichern</button>
+    </div>
 
     <div class="meta" style="margin:22px 0 10px; padding-top:16px; border-top:1px solid var(--line);">Daten sichern &amp; übernehmen</div>
     <p style="font-size:13px; color:var(--ink-soft); margin:0 0 12px;">Sichert alle Projekte, Listen und Zutaten als Datei. Der Import legt die Inhalte als <b>neue</b> Projekte an (auch aus der alten Version der App). Mitglieder müssen danach neu zugeordnet werden.</p>
@@ -570,10 +704,14 @@ if (!window.supabase) {
     'Die Verbindungs-Bibliothek konnte nicht geladen werden. Bitte Internetverbindung prüfen und Seite neu laden.';
   throw new Error('supabase-js nicht geladen');
 }
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// sessionStorage statt localStorage: die Sitzung bleibt beim Neuladen der Seite erhalten,
+// wird aber gelöscht, sobald das Fenster/der Tab geschlossen wird (siehe Anleitung).
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true }
+});
 
 /* ================= STATE ================= */
-const db = { profiles: [], projects: [], members: [], lists: [], items: [], recipes: [], recipeItems: [] };
+const db = { profiles: [], projects: [], members: [], lists: [], items: [], recipes: [], recipeItems: [], suppliers: [], settings: { version: '1.0' } };
 let me = null;          // eigenes Profil {id, name, email, role}
 let started = false;    // Sitzung vollständig geladen?
 let startingFor = null; // verhindert doppelten Start
@@ -581,8 +719,8 @@ let recoveryMode = false;
 let rtChannel = null;
 
 let ui = (() => {
-  try { return Object.assign({ view: 'project', projectId: null, tab: 'lists', search: '' }, JSON.parse(localStorage.getItem('kombuese-ui') || '{}')); }
-  catch (e) { return { view: 'project', projectId: null, tab: 'lists', search: '' }; }
+  try { return Object.assign({ view: 'project', projectId: null, tab: 'lists', search: '', recipeSearch: '' }, JSON.parse(localStorage.getItem('kombuese-ui') || '{}')); }
+  catch (e) { return { view: 'project', projectId: null, tab: 'lists', search: '', recipeSearch: '' }; }
 })();
 function saveUi() { try { localStorage.setItem('kombuese-ui', JSON.stringify(ui)); } catch (e) { /* ignore */ } }
 
@@ -603,6 +741,7 @@ function uuid() {
   const h = [...b].map(x => x.toString(16).padStart(2, '0'));
   return `${h.slice(0, 4).join('')}-${h.slice(4, 6).join('')}-${h.slice(6, 8).join('')}-${h.slice(8, 10).join('')}-${h.slice(10).join('')}`;
 }
+function escapeJs(str) { return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -610,11 +749,41 @@ function $(id) { return document.getElementById(id); }
 function normName(n) { return String(n || '').trim().toLowerCase(); }
 
 function roleLabel(role) {
-  return { admin: 'Über-Admin', lead: 'Projektleiter', editor: 'Bearbeiter', viewer: 'Betrachter', pending: 'Gesperrt / wartet' }[role] || role;
+  return { admin: 'Admin', lead: 'Projektleiter', editor: 'Bearbeiter', viewer: 'Betrachter', pending: 'Gesperrt / wartet' }[role] || role;
+}
+function roleDescription(role) {
+  return {
+    admin: 'Verwaltet das gesamte Programm: legt Benutzer an, schaltet sie frei, sieht und verwaltet alle Projekte.',
+    lead: 'Kann eigene Projekte anlegen und dort Mitglieder aus bereits freigeschalteten Benutzern hinzufügen.',
+    editor: 'Kann in zugewiesenen Projekten Listen und Zutaten anlegen, bearbeiten und abhaken.',
+    viewer: 'Kann zugewiesene Projekte nur ansehen, nichts bearbeiten.',
+    pending: 'Konto existiert, wartet aber noch auf Freischaltung durch einen Admin.'
+  }[role] || '';
 }
 function findProject(id) { return db.projects.find(p => p.id === id); }
 function findList(id) { return db.lists.find(l => l.id === id); }
-function profileName(id) { const p = db.profiles.find(x => x.id === id); return p ? (p.name || p.email || '—') : '—'; }
+function profileName(id) { const p = db.profiles.find(x => x.id === id); return p ? (p.name || p.username || p.email || '—') : '—'; }
+function profileById(id) { return db.profiles.find(x => x.id === id) || null; }
+function initials(name) {
+  const parts = String(name || '?').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+const AVATAR_PALETTE = ['#4F46E5', '#0EA5E9', '#16A34A', '#D97706', '#DB2777', '#7C3AED', '#0D9488'];
+function avatarColor(seed) {
+  let h = 0; for (const c of String(seed || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+}
+// Liefert HTML für einen Avatar: Bild falls vorhanden, sonst farbiges Kürzel aus den Initialen.
+function avatarHtml(profile, size) {
+  const cls = size === 'small' ? 'avatar small' : 'avatar';
+  const name = profile ? (profile.name || profile.username || profile.email || '?') : '?';
+  if (profile && profile.avatar) return `<img class="${cls}" src="${profile.avatar}" alt="">`;
+  return `<div class="${cls}" style="background:${avatarColor(profile ? profile.id : name)}22; color:${avatarColor(profile ? profile.id : name)};">${escapeHtml(initials(name))}</div>`;
+}
+function slugifyUsername(s) { return String(s || '').toLowerCase().trim().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, ''); }
+function localEmailFor(username) { return `local-${slugifyUsername(username)}@kombuese.local`; }
+function isLocalEmail(email) { return /@kombuese\.local$/i.test(String(email || '')); }
 
 function roleInProject(project) {
   if (!me || !project) return null;
@@ -626,7 +795,10 @@ function canEdit(project) { const r = roleInProject(project); return r === 'admi
 function isProjectAdmin(project) { return roleInProject(project) === 'admin'; }
 function canCreateProject() { return !!me && (me.role === 'admin' || me.role === 'lead'); }
 
-function activeLists(pid) { return db.lists.filter(l => l.project_id === pid && !l.deleted_at); }
+function activeLists(pid) {
+  return db.lists.filter(l => l.project_id === pid && !l.deleted_at)
+    .sort((a, b) => (a.sort_order - b.sort_order) || (new Date(a.created_at) - new Date(b.created_at)));
+}
 function itemsOfList(lid) { return db.items.filter(i => i.list_id === lid && !i.deleted_at); }
 function activeItems(pid) {
   const ids = new Set(activeLists(pid).map(l => l.id));
@@ -662,6 +834,7 @@ function unitInfo(u) {
   const x = UNITS[String(u || '').trim().toLowerCase()];
   return x ? { fam: x[0], f: x[1] } : null;
 }
+function roundNice(n) { return Math.round(n * 100) / 100; }
 function fmtNum(n) { return (Math.round(n * 100) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 }); }
 function fmtBase(fam, base) {
   if (fam === 'mass') {
@@ -711,12 +884,13 @@ function aggregateBySupplier(pid) {
     const g = sup.get(skey);
     const info = unitInfo(i.unit);
     const key = groupKey(i.name, i.unit);
-    if (!g.map.has(key)) g.map.set(key, { name: i.name, unit: i.unit, fam: info ? info.fam : null, total: 0, listNames: new Set(), itemIds: [], bought: true, category: i.category || '' });
+    if (!g.map.has(key)) g.map.set(key, { name: i.name, unit: i.unit, fam: info ? info.fam : null, total: 0, listNames: new Set(), itemIds: [], bought: true, category: i.category || '', notes: new Set() });
     const e = g.map.get(key);
     e.total += (Number(i.qty) || 0) * (info ? info.f : 1);
     e.listNames.add(listNames.get(i.list_id) || '');
     e.itemIds.push(i.id);
     if (!e.category && i.category) e.category = i.category;
+    if (i.note) e.notes.add(i.note);
     if (!i.bought) e.bought = false;
   });
   const groups = [...sup.values()].map(g => ({
@@ -777,6 +951,49 @@ function findSimilarIngredient(pid, name) { return fuzzyMatch(projectNames(pid, 
 function findSimilarSupplier(pid, name) { return fuzzyMatch(projectNames(pid, 'supplier'), name, true); }
 function projectSupplierNames(pid) { return projectNames(pid, 'supplier').sort((a, b) => a.localeCompare(b, 'de')); }
 
+/* ---------- Lieferanten-Auswahl (Stammliste statt Freitext) ---------- */
+function supplierSelectOptions(current) {
+  const names = db.suppliers.map(s => s.name);
+  if (current && !names.some(n => n.toLowerCase() === current.toLowerCase())) names.push(current);
+  const sorted = [...names].sort((a, b) => a.localeCompare(b, 'de'));
+  return `<option value="">— kein Lieferant —</option>` +
+    sorted.map(n => `<option value="${escapeHtml(n)}" ${n === current ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('') +
+    `<option value="__new__">+ Neuer Lieferant …</option>`;
+}
+let pendingSupplierSelectEl = null;
+function handleSupplierSelect(sel) {
+  if (sel.value === '__new__') {
+    pendingSupplierSelectEl = sel;
+    sel.value = sel.dataset.prev || '';
+    $('newSupplierInlineName').value = '';
+    newSupplierInlineDialog.showModal();
+    $('newSupplierInlineName').focus();
+  } else {
+    sel.dataset.prev = sel.value;
+  }
+}
+function cancelNewSupplierInline() { pendingSupplierSelectEl = null; newSupplierInlineDialog.close(); }
+async function saveNewSupplierInline() {
+  const name = $('newSupplierInlineName').value.trim();
+  const sel = pendingSupplierSelectEl;
+  if (!name || !sel) { cancelNewSupplierInline(); return; }
+  newSupplierInlineDialog.close();
+  pendingSupplierSelectEl = null;
+  // Sofort in diesem einen Auswahlfeld ergänzen, ohne das Formular neu zu zeichnen
+  // (sonst gingen bereits eingetippte Werte wie Bezeichnung/Menge verloren).
+  if (![...sel.options].some(o => o.value.toLowerCase() === name.toLowerCase())) {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.insertBefore(opt, sel.querySelector('option[value="__new__"]'));
+  }
+  sel.value = name; sel.dataset.prev = name;
+  const { error } = await sb.from('suppliers').insert({ name });
+  if (error && !/duplicate|unique/i.test(error.message)) {
+    toast('Lieferant konnte nicht dauerhaft in der Stammliste gespeichert werden: ' + friendlyError(error), null, null, true);
+  }
+  // db.suppliers wird spätestens beim nächsten Speichern automatisch aktualisiert.
+}
+
 /* ================= DATEN LADEN ================= */
 async function fetchAll(table, orderCols) {
   const out = [];
@@ -792,17 +1009,20 @@ async function fetchAll(table, orderCols) {
   return out;
 }
 async function loadAll() {
-  const [profiles, projects, members, lists, items, recipes, recipeItems] = await Promise.all([
+  const [profiles, projects, members, lists, items, recipes, recipeItems, suppliers, settingsRes] = await Promise.all([
     fetchAll('profiles', ['created_at', 'id']),
     fetchAll('projects', ['created_at', 'id']),
     fetchAll('project_members', ['project_id', 'user_id']),
     fetchAll('lists', ['created_at', 'id']),
     fetchAll('items', ['created_at', 'id']),
     fetchAll('recipes', ['name']),
-    fetchAll('recipe_items', ['name'])
+    fetchAll('recipe_items', ['name']),
+    fetchAll('suppliers', ['name']),
+    sb.from('app_settings').select('*').eq('id', 'main').maybeSingle()
   ]);
   db.profiles = profiles; db.projects = projects; db.members = members; db.lists = lists; db.items = items;
-  db.recipes = recipes; db.recipeItems = recipeItems;
+  db.recipes = recipes; db.recipeItems = recipeItems; db.suppliers = suppliers;
+  if (settingsRes.data) db.settings = settingsRes.data;
   const mine = profiles.find(p => p.id === me.id);
   if (mine) me = mine;
 }
@@ -823,16 +1043,17 @@ function showLoginMessage(kind, text) {
 }
 
 async function doLogin() {
-  const email = $('loginEmail').value.trim();
+  let input = $('loginEmail').value.trim();
   const pass = $('loginPass').value;
-  if (!email || !pass) { showLoginMessage('error', 'Bitte E-Mail und Passwort eingeben.'); return; }
+  if (!input || !pass) { showLoginMessage('error', 'Bitte E-Mail/Benutzername und Passwort eingeben.'); return; }
+  const email = input.includes('@') ? input : localEmailFor(input);
   const btn = $('loginBtn');
   btn.disabled = true;
   showLoginMessage('none');
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   btn.disabled = false;
   if (error) {
-    showLoginMessage('error', /Invalid login credentials/i.test(error.message) ? 'E-Mail oder Passwort ist falsch.' : friendlyError(error));
+    showLoginMessage('error', /Invalid login credentials/i.test(error.message) ? 'E-Mail/Benutzername oder Passwort ist falsch.' : friendlyError(error));
     $('loginPass').value = '';
     return;
   }
@@ -846,6 +1067,30 @@ async function forgotPassword() {
   if (error) { showLoginMessage('error', friendlyError(error)); return; }
   showLoginMessage('info', 'Falls es ein Konto mit dieser Adresse gibt, wurde eine E-Mail zum Zurücksetzen gesendet.');
 }
+function openRegisterDialog() {
+  $('regName').value = ''; $('regEmail').value = ''; $('regPass').value = '';
+  $('regError').style.display = 'none';
+  registerDialog.showModal(); $('regName').focus();
+}
+async function submitRegister() {
+  const name = $('regName').value.trim();
+  const email = $('regEmail').value.trim();
+  const pass = $('regPass').value;
+  const errEl = $('regError');
+  errEl.style.display = 'none';
+  if (!name || !email || !pass) { errEl.textContent = 'Bitte alle Felder ausfüllen.'; errEl.style.display = 'block'; return; }
+  if (pass.length < 6) { errEl.textContent = 'Das Passwort braucht mindestens 6 Zeichen.'; errEl.style.display = 'block'; return; }
+  const btn = $('regBtn'); btn.disabled = true;
+  const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name } } });
+  btn.disabled = false;
+  if (error) { errEl.textContent = friendlyError(error); errEl.style.display = 'block'; return; }
+  if (!data.user || (data.user.identities && data.user.identities.length === 0)) {
+    errEl.textContent = 'Diese E-Mail-Adresse ist bereits registriert.'; errEl.style.display = 'block'; return;
+  }
+  registerDialog.close();
+  $('loginEmail').value = email;
+  showLoginMessage('info', 'Konto angelegt. Bitte warte, bis ein Admin dich freischaltet, und melde dich danach an.');
+}
 async function doLogout() {
   await sb.auth.signOut();
   stopSession();
@@ -855,6 +1100,7 @@ function stopSession() {
   started = false; startingFor = null; me = null; recoveryMode = false;
   if (rtChannel) { sb.removeChannel(rtChannel); rtChannel = null; }
   db.profiles = []; db.projects = []; db.members = []; db.lists = []; db.items = [];
+  stopIdleTimer();
 }
 
 async function onAuth(event, session) {
@@ -885,7 +1131,24 @@ async function startSession(session) {
   subscribeRealtime();
   showScreen('app');
   renderApp();
+  startIdleTimer();
 }
+/* ================= AUTO-ABMELDUNG BEI INAKTIVITÄT ================= */
+const IDLE_LIMIT_MS = 10 * 60 * 1000;
+let idleTimer = null;
+function resetIdleTimer() {
+  if (!started) return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (started) { toast('Wegen Inaktivität automatisch abgemeldet.'); doLogout(); }
+  }, IDLE_LIMIT_MS);
+}
+function startIdleTimer() {
+  ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'].forEach(ev => document.addEventListener(ev, resetIdleTimer, { passive: true }));
+  resetIdleTimer();
+}
+function stopIdleTimer() { clearTimeout(idleTimer); }
+
 async function recheckAccess() {
   const { data } = await sb.auth.getSession();
   if (!data.session) { stopSession(); showScreen('login'); return; }
@@ -905,7 +1168,7 @@ function subscribeRealtime() {
   if (rtChannel) { sb.removeChannel(rtChannel); rtChannel = null; }
   setLive('connecting');
   const ch = sb.channel('kombuese-live');
-  ['profiles', 'projects', 'project_members', 'lists', 'items', 'recipes', 'recipe_items'].forEach(t => {
+  ['profiles', 'projects', 'project_members', 'lists', 'items', 'recipes', 'recipe_items', 'suppliers', 'app_settings'].forEach(t => {
     ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, scheduleReload);
   });
   ch.subscribe(status => {
@@ -969,16 +1232,20 @@ function ensureProject() {
 }
 function renderApp() {
   if (!me) return;
-  $('curUserName').textContent = me.name || me.email || '';
+  $('curUserName').textContent = me.name || me.username || me.email || '';
   const rb = $('curUserRole'); rb.textContent = roleLabel(me.role); rb.className = 'role-badge ' + me.role;
+  $('curUserRoleDesc').textContent = roleDescription(me.role);
+  $('curUserAvatar').outerHTML = avatarHtml(me).replace('class="avatar', 'id="curUserAvatar" class="avatar');
   $('adminBtn').style.display = me.role === 'admin' ? 'inline-flex' : 'none';
+  const v = db.settings && db.settings.version ? db.settings.version : '';
+  $('versionLine').innerHTML = v ? `Kombüse v${escapeHtml(v)}` : '';
   ensureProject();
   renderSidebar();
   renderMain();
   refreshDialogs();
 }
 function refreshDialogs() {
-  if ($('userAdminDialog').open) { renderUserAdminList(); renderAllProjectsList(); }
+  if ($('userAdminDialog').open) { renderUserAdminList(); renderAllProjectsList(); renderSupplierAdminList(); renderRoleLegend(); $('versionInput').value = (db.settings && db.settings.version) || ''; }
 }
 
 function renderSidebar() {
@@ -1056,14 +1323,62 @@ function setSearch(v) {
   const el = document.querySelector('#tabContent input[data-role="search"]');
   if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
 }
+let collapsedLists = new Set();
+let selectedItemIds = new Set();
+function toggleListCollapse(id) {
+  if (collapsedLists.has(id)) collapsedLists.delete(id); else collapsedLists.add(id);
+  renderMain();
+}
+function toggleItemSelect(id, checked) {
+  if (checked) selectedItemIds.add(id); else selectedItemIds.delete(id);
+  renderMain();
+}
+function clearSelection() { selectedItemIds.clear(); renderMain(); }
+
+function onListDragStart(ev, id) { ev.dataTransfer.setData('text/plain', id); ev.dataTransfer.effectAllowed = 'move'; ev.target.closest('.panel').classList.add('dragging'); }
+function onListDragEnd(ev) { ev.target.closest('.panel') && ev.target.closest('.panel').classList.remove('dragging'); }
+function onListDragOver(ev) { ev.preventDefault(); }
+async function onListDrop(ev, targetId) {
+  ev.preventDefault();
+  const draggedId = ev.dataTransfer.getData('text/plain');
+  document.querySelectorAll('.panel.dragging').forEach(p => p.classList.remove('dragging'));
+  if (!draggedId || draggedId === targetId) return;
+  const project = findProject(ui.projectId);
+  const ids = activeLists(project.id).map(l => l.id);
+  const from = ids.indexOf(draggedId), to = ids.indexOf(targetId);
+  if (from === -1 || to === -1) return;
+  ids.splice(to, 0, ids.splice(from, 1)[0]);
+  await Promise.all(ids.map((id, idx) => sb.from('lists').update({ sort_order: idx * 10 }).eq('id', id)));
+  await refresh();
+}
+async function sortListsByName(pid) {
+  const lists = [...activeLists(pid)].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  await Promise.all(lists.map((l, idx) => sb.from('lists').update({ sort_order: idx * 10 }).eq('id', l.id)));
+  await refresh();
+}
+
 function renderListsTab(project, editable) {
   const q = normName(ui.search);
   let lists = activeLists(project.id);
-  let html = `<datalist id="supplierOptions">${projectSupplierNames(project.id).map(s => `<option value="${escapeHtml(s)}"></option>`).join('')}</datalist>`;
+  let html = '';
   html += `
-    <div class="field no-print" style="max-width:320px; margin-bottom:18px;">
-      <input type="text" data-role="search" placeholder="🔍 Zutat suchen …" value="${escapeHtml(ui.search)}" oninput="setSearch(this.value)">
+    <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:18px;">
+      <div class="field no-print" style="max-width:320px; margin-bottom:0; flex:1; min-width:200px;">
+        <input type="text" data-role="search" placeholder="🔍 Zutat suchen …" value="${escapeHtml(ui.search)}" oninput="setSearch(this.value)">
+      </div>
+      ${editable && lists.length > 1 ? `<button class="btn secondary small no-print" onclick="sortListsByName('${project.id}')">A–Z sortieren</button>` : ''}
     </div>`;
+  if (editable && selectedItemIds.size) {
+    html += `
+    <div class="bulk-bar no-print">
+      <span>${selectedItemIds.size} Zutat${selectedItemIds.size === 1 ? '' : 'en'} ausgewählt</span>
+      <select id="bulkSupplier">${supplierSelectOptions('')}</select>
+      <button class="btn secondary small" onclick="bulkSetSupplier()">Lieferant setzen</button>
+      <input type="text" id="bulkNote" placeholder="Notiz" style="width:140px;">
+      <button class="btn secondary small" onclick="bulkSetNote()">Notiz setzen</button>
+      <button class="btn secondary small" onclick="clearSelection()">Auswahl aufheben</button>
+    </div>`;
+  }
   if (!lists.length) {
     html += `<div class="empty-state"><h3>Noch keine Liste angelegt</h3><p>Lege eine Liste für ein Gericht oder eine Mahlzeit an, um Zutaten zu sammeln.</p></div>`;
   }
@@ -1074,12 +1389,17 @@ function renderListsTab(project, editable) {
     if (q && !items.length) return;
     if (q) anyMatch = true;
     const creator = list.created_by ? profileName(list.created_by) : '';
+    const collapsed = collapsedLists.has(list.id) && !q;
     html += `
-      <div class="panel">
+      <div class="panel" ondragover="onListDragOver(event)" ondrop="onListDrop(event, '${list.id}')">
         <div class="panel-head">
-          <div>
-            <h3 ${creator ? `title="angelegt von ${escapeHtml(creator)}"` : ''}>${escapeHtml(list.name)}</h3>
-            <div class="meta">${items.length}${q && items.length !== allItems.length ? ' von ' + allItems.length : ''} Zutat${items.length === 1 ? '' : 'en'}${list.note ? ' · ' + escapeHtml(list.note) : ''}</div>
+          <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+            ${editable ? `<span class="drag-handle no-print" draggable="true" ondragstart="onListDragStart(event, '${list.id}')" ondragend="onListDragEnd(event)" title="Ziehen zum Sortieren">⠿</span>` : ''}
+            <button class="chevron-btn no-print ${collapsed ? '' : 'open'}" onclick="toggleListCollapse('${list.id}')" title="${collapsed ? 'Aufklappen' : 'Einklappen'}">▶</button>
+            <div style="min-width:0;">
+              <h3 ${creator ? `title="angelegt von ${escapeHtml(creator)}"` : ''}>${escapeHtml(list.name)}</h3>
+              <div class="meta">${items.length}${q && items.length !== allItems.length ? ' von ' + allItems.length : ''} Zutat${items.length === 1 ? '' : 'en'}${list.note ? ' · ' + escapeHtml(list.note) : ''}${creator ? ' · von ' + escapeHtml(creator) : ''}</div>
+            </div>
           </div>
           ${editable ? `<div class="no-print" style="white-space:nowrap;">
             <button class="icon-btn" onclick="openEditList('${list.id}')" title="Liste bearbeiten">✎</button>
@@ -1087,18 +1407,20 @@ function renderListsTab(project, editable) {
             <button class="icon-btn del" onclick="deleteList('${list.id}')" title="Liste löschen">✕</button>
           </div>` : ''}
         </div>
+        ${collapsed ? '' : `
         <div class="panel-body">
           ${items.length ? `
           <div class="overflow-wrap">
           <table>
-            <thead><tr><th>Bezeichnung</th><th>Anzahl</th><th>Einheit</th><th>Gesamtmenge</th><th>Kategorie</th><th>Lieferant</th>${editable ? '<th></th>' : ''}</tr></thead>
+            <thead><tr>${editable ? '<th style="width:30px;"></th>' : ''}<th>Bezeichnung</th><th class="num">Anzahl</th><th>Einheit</th><th class="num">Gesamtmenge</th><th>Kategorie</th><th>Lieferant</th>${editable ? '<th></th>' : ''}</tr></thead>
             <tbody>
               ${items.map(i => {
                 const who = i.created_by ? profileName(i.created_by) : '';
-                const tip = [who ? `hinzugefügt von ${who}` : '', i.note ? `Notiz: ${i.note}` : ''].filter(Boolean).join(' · ');
+                const tip = i.note ? `Notiz: ${i.note}` : '';
                 return `
-                <tr>
-                  <td${tip ? ` title="${escapeHtml(tip)}"` : ''}>${escapeHtml(i.name)}${i.note ? ' 📝' : ''}</td>
+                <tr class="${selectedItemIds.has(i.id) ? 'selected' : ''}">
+                  ${editable ? `<td class="no-print"><input type="checkbox" ${selectedItemIds.has(i.id) ? 'checked' : ''} onchange="toggleItemSelect('${i.id}', this.checked)" aria-label="auswählen"></td>` : ''}
+                  <td${tip ? ` title="${escapeHtml(tip)}"` : ''}>${escapeHtml(i.name)}${i.note ? ' 📝' : ''}${who ? `<div class="added-by">von ${escapeHtml(who)}</div>` : ''}</td>
                   <td class="num">${fmtNum(Number(i.qty))}</td>
                   <td>${escapeHtml(i.unit || '')}</td>
                   <td class="num">${escapeHtml(formatAmount(i.qty, i.unit))}</td>
@@ -1123,13 +1445,12 @@ function renderListsTab(project, editable) {
             <div class="field f-unit"><label>Kategorie</label><input type="text" list="categoryOptions" name="category"></div>
             <div class="field f-supplier">
               <label>Lieferant</label>
-              <input type="text" name="supplier" autocomplete="off" list="supplierOptions" oninput="handleSuggest(this, '${project.id}', 'supplier')">
-              <div class="suggest-slot"></div>
+              <select name="supplier" onchange="handleSupplierSelect(this)">${supplierSelectOptions('')}</select>
             </div>
             <div class="field f-supplier"><label>Notiz</label><input type="text" name="note" placeholder="optional"></div>
             <button class="btn small" type="submit">Hinzufügen</button>
           </form>` : ''}
-        </div>
+        </div>`}
       </div>`;
   });
   if (q && !anyMatch) html += `<div class="empty-state"><h3>Keine Treffer</h3><p>Keine Zutat passt zu „${escapeHtml(ui.search)}“.</p></div>`;
@@ -1141,6 +1462,20 @@ function renderListsTab(project, editable) {
       </form>`;
   }
   $('tabContent').innerHTML = html;
+}
+async function bulkSetSupplier() {
+  const sel = $('bulkSupplier');
+  if (sel.value === '__new__') return; // Inline-Neuanlage macht hier keinen Sinn, einfach erneut wählen
+  const supplier = sel.value;
+  const ids = [...selectedItemIds];
+  const ok = await mutate(sb.from('items').update({ supplier }).in('id', ids));
+  if (ok) { clearSelection(); toast(`Lieferant für ${ids.length} Zutat(en) gesetzt.`); }
+}
+async function bulkSetNote() {
+  const note = $('bulkNote').value.trim();
+  const ids = [...selectedItemIds];
+  const ok = await mutate(sb.from('items').update({ note }).in('id', ids));
+  if (ok) { clearSelection(); toast(`Notiz für ${ids.length} Zutat(en) gesetzt.`); }
 }
 
 function renderAggregateTab(project) {
@@ -1156,7 +1491,7 @@ function renderAggregateTab(project) {
         ${agg.length ? `
         <div class="overflow-wrap"><table>
           <thead><tr>
-            <th>Bezeichnung</th><th>Gesamtmenge</th><th>Lieferanten</th>
+            <th>Bezeichnung</th><th class="num">Gesamtmenge</th><th>Lieferanten</th>
             ${lists.map(l => `<th class="mark-head" title="${escapeHtml(l.name)}">${escapeHtml(l.name)}</th>`).join('')}
           </tr></thead>
           <tbody>
@@ -1192,15 +1527,16 @@ function renderSuppliersTab(project, editable) {
           <div style="margin-bottom:22px;">
             <div class="sup-title"><span class="name">${escapeHtml(g.supplier)}</span><span class="progress">${done} / ${g.entries.length} gekauft</span></div>
             <div class="overflow-wrap"><table>
-              <thead><tr><th style="width:34px;"></th><th>Bezeichnung</th><th>Gesamtmenge</th><th>Liste(n)</th></tr></thead>
+              <thead><tr><th style="width:34px;"></th><th>Bezeichnung</th><th class="num">Gesamtmenge</th><th>Liste(n)</th></tr></thead>
               <tbody>
                 ${g.entries.map(e => {
                   const cat = e.category || 'Ohne Kategorie';
                   const header = cat !== lastCat ? (lastCat = cat, `<tr><td colspan="4" style="background:var(--paper); font-size:11.5px; font-weight:600; color:var(--ink-soft); padding:6px 8px;">${escapeHtml(cat)}</td></tr>`) : '';
+                  const noteTip = [...e.notes].join(' · ');
                   return header + `
                   <tr class="${e.bought ? 'done' : ''}">
                     <td><input type="checkbox" ${e.bought ? 'checked' : ''} ${editable ? '' : 'disabled'} onchange="toggleBought('${e.itemIds.join(',')}', this.checked)" aria-label="gekauft"></td>
-                    <td>${escapeHtml(e.name)}</td>
+                    <td${noteTip ? ` title="Notiz: ${escapeHtml(noteTip)}"` : ''}>${escapeHtml(e.name)}${noteTip ? ' 📝' : ''}</td>
                     <td class="num">${escapeHtml(formatGroupTotal(e))}</td>
                     <td class="supplier-list">${[...e.listNames].map(escapeHtml).join(', ')}</td>
                   </tr>`;
@@ -1224,7 +1560,7 @@ function renderMembersTab(project) {
       <div class="panel-body">
         ${members.map(m => `
           <div class="member-row">
-            <span>${escapeHtml(profileName(m.user_id))}</span>
+            <span style="display:flex; align-items:center; gap:10px;">${avatarHtml(profileById(m.user_id), 'small')}${escapeHtml(profileName(m.user_id))}</span>
             <span style="display:flex; align-items:center; gap:8px;">
               <select onchange="setMemberRole('${project.id}', '${m.user_id}', this.value)">
                 <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>Betrachter</option>
@@ -1240,7 +1576,7 @@ function renderMembersTab(project) {
           </div>
           <button class="btn small" onclick="addMember('${project.id}')">Hinzufügen</button>
         </div>
-        <div class="meta" style="margin-top:12px;">Hinzufügen kann man nur Personen, die der Über-Admin bereits im Programm angelegt und freigeschaltet hat.</div>
+        <div class="meta" style="margin-top:12px;">Hinzufügen kann man nur Personen, die der Admin bereits im Programm angelegt und freigeschaltet hat.</div>
       </div>
     </div>`;
 }
@@ -1274,33 +1610,62 @@ function renderTrashTab(project) {
 
 /* ================= REZEPTBIBLIOTHEK ================= */
 function canManageRecipes() { return !!me && ['admin', 'lead', 'editor'].includes(me.role); }
+let expandedRecipes = new Set();
+function toggleRecipeExpand(id) {
+  if (expandedRecipes.has(id)) expandedRecipes.delete(id); else expandedRecipes.add(id);
+  renderRecipesView();
+}
+function setRecipeSearch(v) {
+  ui.recipeSearch = v; saveUi();
+  renderRecipesView();
+  const el = document.querySelector('[data-role="recipe-search"]');
+  if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+}
 function renderRecipesView() {
-  const recipes = [...db.recipes].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const q = normName(ui.recipeSearch || '');
+  const all = [...db.recipes].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const recipes = q ? all.filter(r => normName(r.name).includes(q) || db.recipeItems.some(i => i.recipe_id === r.id && normName(i.name).includes(q))) : all;
   const canManage = canManageRecipes();
   $('main').innerHTML = `
     <div class="topbar">
       <div><h1>Rezeptbibliothek</h1><div class="desc">Projektübergreifend — für alle sichtbar, kann in jede Liste übernommen werden.</div></div>
       ${canManage ? `<button class="btn" onclick="openRecipeDialog(null)">+ Neues Rezept</button>` : ''}
     </div>
+    <div class="field no-print" style="max-width:320px; margin-bottom:18px;">
+      <input type="text" data-role="recipe-search" placeholder="🔍 Rezept oder Zutat suchen …" value="${escapeHtml(ui.recipeSearch || '')}" oninput="setRecipeSearch(this.value)">
+    </div>
     ${recipes.length ? recipes.map(r => {
       const items = db.recipeItems.filter(x => x.recipe_id === r.id).sort((a, b) => categoryRank(a.category) - categoryRank(b.category) || a.name.localeCompare(b.name, 'de'));
       const who = r.created_by ? profileName(r.created_by) : '';
+      const open = expandedRecipes.has(r.id);
+      const tagLine = [r.recipe_category, r.servings ? `${r.servings} Portion${r.servings === 1 ? '' : 'en'}` : ''].filter(Boolean).join(' · ');
       return `
       <div class="panel">
-        <div class="panel-head">
-          <div><h3 ${who ? `title="angelegt von ${escapeHtml(who)}"` : ''}>${escapeHtml(r.name)}</h3>
-          <div class="meta">${items.length} Zutat${items.length === 1 ? '' : 'en'}${r.note ? ' · ' + escapeHtml(r.note) : ''}</div></div>
-          <div style="white-space:nowrap;">
+        <div class="panel-head" style="cursor:pointer;" onclick="toggleRecipeExpand('${r.id}')">
+          <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+            <button class="chevron-btn no-print ${open ? 'open' : ''}" onclick="event.stopPropagation(); toggleRecipeExpand('${r.id}')">▶</button>
+            ${r.image ? `<img src="${r.image}" style="width:40px; height:40px; border-radius:8px; object-fit:cover; flex-shrink:0;">` : ''}
+            <div style="min-width:0;">
+              <h3 ${who ? `title="angelegt von ${escapeHtml(who)}"` : ''}>${escapeHtml(r.name)}</h3>
+              <div class="meta">${items.length} Zutat${items.length === 1 ? '' : 'en'}${tagLine ? ' · ' + escapeHtml(tagLine) : ''}${r.note ? ' · ' + escapeHtml(r.note) : ''}</div>
+            </div>
+          </div>
+          <div class="no-print" style="white-space:nowrap;" onclick="event.stopPropagation()">
             <button class="btn secondary small" onclick="openAddRecipeToProject('${r.id}')">In Projekt übernehmen</button>
+            <button class="icon-btn" onclick="printRecipe('${r.id}')" title="Drucken / als PDF">🖨</button>
             ${canManage ? `<button class="icon-btn" onclick="openRecipeDialog('${r.id}')" title="Bearbeiten">✎</button><button class="icon-btn del" onclick="deleteRecipe('${r.id}')" title="Löschen">✕</button>` : ''}
           </div>
         </div>
-        ${items.length ? `<div class="panel-body"><div class="overflow-wrap"><table>
-          <thead><tr><th>Bezeichnung</th><th>Menge</th><th>Kategorie</th></tr></thead>
-          <tbody>${items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td class="num">${escapeHtml(formatAmount(i.qty, i.unit))}</td><td>${escapeHtml(i.category || '')}</td></tr>`).join('')}</tbody>
-        </table></div></div>` : ''}
+        ${open ? `<div class="panel-body">
+          ${r.image ? `<img src="${r.image}" style="max-width:100%; max-height:260px; border-radius:var(--radius-sm); margin-bottom:14px; display:block;">` : ''}
+          ${items.length ? `<div class="overflow-wrap"><table>
+            <thead><tr><th>Bezeichnung</th><th class="num">Menge</th><th>Kategorie</th></tr></thead>
+            <tbody>${items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td class="num">${escapeHtml(formatAmount(i.qty, i.unit))}</td><td>${escapeHtml(i.category || '')}</td></tr>`).join('')}</tbody>
+          </table></div>` : `<div class="meta">Keine Zutaten hinterlegt.</div>`}
+          ${r.instructions ? `<div class="meta" style="margin:16px 0 4px;">Anleitung</div><div style="white-space:pre-wrap; font-size:14px;">${escapeHtml(r.instructions)}</div>` : ''}
+        </div>` : ''}
       </div>`;
-    }).join('') : `<div class="empty-state"><h3>Noch keine Rezepte</h3><p>${canManage ? 'Lege oben ein neues Rezept an.' : 'Sobald jemand ein Rezept anlegt, erscheint es hier.'}</p></div>`}
+    }).join('') : `<div class="empty-state"><h3>${q ? 'Keine Treffer' : 'Noch keine Rezepte'}</h3><p>${q ? 'Keine Rezepte oder Zutaten passen zur Suche.' : (canManage ? 'Lege oben ein neues Rezept an.' : 'Sobald jemand ein Rezept anlegt, erscheint es hier.')}</p></div>`}
   `;
 }
 
@@ -1331,6 +1696,11 @@ function openRecipeDialog(id) {
   $('recipeDialogTitle').textContent = r ? 'Rezept bearbeiten' : 'Rezept anlegen';
   $('rcName').value = r ? r.name : '';
   $('rcNote').value = r ? r.note || '' : '';
+  $('rcCategory').value = r ? r.recipe_category || '' : '';
+  $('rcServings').value = r && r.servings ? r.servings : '';
+  $('rcInstructions').value = r ? r.instructions || '' : '';
+  rcImageData = undefined;
+  showRecipeImagePreview(r ? r.image || null : null);
   $('rcPaste').value = '';
   $('rcRows').innerHTML = '';
   const items = r ? db.recipeItems.filter(x => x.recipe_id === r.id) : [];
@@ -1357,11 +1727,18 @@ function importPastedIngredients() {
 async function saveRecipe() {
   const name = $('rcName').value.trim();
   if (!name) { $('rcName').focus(); return; }
-  const note = $('rcNote').value.trim();
+  const patch = {
+    name,
+    note: $('rcNote').value.trim(),
+    recipe_category: $('rcCategory').value.trim(),
+    servings: $('rcServings').value ? parseInt($('rcServings').value, 10) : null,
+    instructions: $('rcInstructions').value.trim()
+  };
+  if (rcImageData !== undefined) patch.image = rcImageData; // undefined = unverändert, null = entfernt
   const rows = readRecipeRows();
   recipeDialog.close();
   if (recipeEditId) {
-    const r1 = await sb.from('recipes').update({ name, note }).eq('id', recipeEditId);
+    const r1 = await sb.from('recipes').update(patch).eq('id', recipeEditId);
     if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
     const r2 = await sb.from('recipe_items').delete().eq('recipe_id', recipeEditId);
     if (r2.error) { toast('Fehler: ' + friendlyError(r2.error), null, null, true); await refresh(); return; }
@@ -1371,7 +1748,7 @@ async function saveRecipe() {
     }
   } else {
     const id = uuid();
-    const r1 = await sb.from('recipes').insert({ id, name, note });
+    const r1 = await sb.from('recipes').insert({ id, ...patch });
     if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
     if (rows.length) {
       const r2 = await sb.from('recipe_items').insert(rows.map(x => ({ ...x, recipe_id: id })));
@@ -1385,11 +1762,54 @@ function deleteRecipe(id) {
   openConfirm(`Rezept „${r.name}“ endgültig löschen?`, () => mutate(sb.from('recipes').delete().eq('id', id)), 'Endgültig löschen');
 }
 
+function printRecipe(id) {
+  const r = db.recipes.find(x => x.id === id);
+  if (!r) return;
+  const items = db.recipeItems.filter(x => x.recipe_id === r.id).sort((a, b) => categoryRank(a.category) - categoryRank(b.category) || a.name.localeCompare(b.name, 'de'));
+  const tagLine = [r.recipe_category, r.servings ? `${r.servings} Portionen` : ''].filter(Boolean).join(' · ');
+  const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>${escapeHtml(r.name)}</title>
+  <style>
+    body { font-family: -apple-system, 'Segoe UI', sans-serif; color: #14171F; max-width: 700px; margin: 32px auto; padding: 0 20px; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .meta { color: #666; font-size: 13px; margin-bottom: 22px; }
+    img { max-width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; margin-bottom: 18px; }
+    h2 { font-size: 15px; margin: 22px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th { text-align: left; font-size: 11px; color: #555; border-bottom: 1px solid #999; padding: 5px 6px; }
+    td { padding: 6px; border-bottom: 1px solid #ddd; }
+    .instructions { white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
+  </style></head><body>
+  <h1>${escapeHtml(r.name)}</h1>
+  <div class="meta">${escapeHtml(tagLine)}${r.note ? (tagLine ? ' · ' : '') + escapeHtml(r.note) : ''}</div>
+  ${r.image ? `<img src="${r.image}">` : ''}
+  ${items.length ? `<h2>Zutaten</h2><table><thead><tr><th>Bezeichnung</th><th>Menge</th><th>Kategorie</th></tr></thead>
+    <tbody>${items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(formatAmount(i.qty, i.unit))}</td><td>${escapeHtml(i.category || '')}</td></tr>`).join('')}</tbody>
+  </table>` : ''}
+  ${r.instructions ? `<h2>Anleitung</h2><div class="instructions">${escapeHtml(r.instructions)}</div>` : ''}
+  </body></html>`;
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed; right:0; bottom:0; width:0; height:0; border:0; visibility:hidden;';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open(); iframe.contentDocument.write(html); iframe.contentDocument.close();
+  iframe.onload = () => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => iframe.remove(), 1000);
+  };
+}
+
 let addRecipeSourceId = null;
 function openAddRecipeToProject(id) {
   const r = db.recipes.find(x => x.id === id); if (!r) return;
   addRecipeSourceId = id;
   $('rpListName').value = r.name;
+  if (r.servings) {
+    $('rpServingsField').style.display = '';
+    $('rpServings').value = r.servings;
+    $('rpServings').dataset.base = r.servings;
+  } else {
+    $('rpServingsField').style.display = 'none';
+  }
   const targets = visibleProjects().filter(p => canEdit(p));
   $('rpProject').innerHTML = targets.length
     ? targets.map(p => `<option value="${p.id}" ${p.id === ui.projectId ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')
@@ -1402,17 +1822,20 @@ async function saveAddRecipeToProject() {
   const pid = $('rpProject').value;
   if (!name || !pid) { $('rpListName').focus(); return; }
   const items = db.recipeItems.filter(x => x.recipe_id === addRecipeSourceId);
+  const base = parseFloat($('rpServings').dataset.base || '0');
+  const target = parseFloat($('rpServings').value || '0');
+  const factor = (base > 0 && target > 0) ? target / base : 1;
   addRecipeToProjectDialog.close();
   const newId = uuid();
   const r1 = await sb.from('lists').insert({ id: newId, project_id: pid, name });
   if (r1.error) { toast('Fehler: ' + friendlyError(r1.error), null, null, true); return; }
   if (items.length) {
-    const r2 = await sb.from('items').insert(items.map(i => ({ project_id: pid, list_id: newId, name: i.name, qty: i.qty, unit: i.unit, category: i.category })));
+    const r2 = await sb.from('items').insert(items.map(i => ({ project_id: pid, list_id: newId, name: i.name, qty: roundNice(Number(i.qty) * factor), unit: i.unit, category: i.category })));
     if (r2.error) { toast('Liste angelegt, Zutaten aber nicht: ' + friendlyError(r2.error), null, null, true); }
   }
   ui.view = 'project'; ui.projectId = pid; ui.tab = 'lists'; saveUi();
   await refresh();
-  toast('Rezept als Liste hinzugefügt.');
+  toast(factor !== 1 ? `Rezept für ${target} Portionen als Liste hinzugefügt.` : 'Rezept als Liste hinzugefügt.');
 }
 
 
@@ -1556,9 +1979,9 @@ function openEditItem(id) {
   const p = it && findProject(it.project_id);
   if (!it || !p || !canEdit(p)) return;
   editItemTargetId = id;
-  $('eiName').value = it.name; $('eiQty').value = it.qty; $('eiUnit').value = it.unit || ''; $('eiSupplier').value = it.supplier || '';
+  $('eiName').value = it.name; $('eiQty').value = it.qty; $('eiUnit').value = it.unit || '';
+  $('eiSupplier').innerHTML = supplierSelectOptions(it.supplier || ''); $('eiSupplier').dataset.prev = it.supplier || '';
   $('eiCategory').value = it.category || ''; $('eiNote').value = it.note || '';
-  $('supplierOptionsDialog').innerHTML = projectSupplierNames(p.id).map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
   editItemDialog.showModal(); $('eiName').focus();
 }
 async function saveEditItem() {
@@ -1617,14 +2040,26 @@ function removeMember(pid, uid) {
 function openUserAdmin() {
   if (!me || me.role !== 'admin') return;
   closeMobileNav();
-  renderUserAdminList(); renderAllProjectsList();
+  renderUserAdminList(); renderAllProjectsList(); renderSupplierAdminList(); renderRoleLegend();
+  $('versionInput').value = (db.settings && db.settings.version) || '';
+  $('newUserLocal').checked = false; toggleNewUserLocal();
   userAdminDialog.showModal();
+}
+function renderRoleLegend() {
+  $('roleLegend').innerHTML = ['admin', 'lead', 'editor', 'viewer'].map(r => `
+    <div style="margin-bottom:8px;">
+      <span class="role-badge ${r}">${roleLabel(r)}</span>
+      <span class="role-desc" style="margin-top:2px; display:block;">${escapeHtml(roleDescription(r))}</span>
+    </div>`).join('');
 }
 function renderUserAdminList() {
   const users = [...db.profiles].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
   $('userAdminList').innerHTML = users.map(u => `
     <div class="member-row">
-      <span>${escapeHtml(u.name || '—')}<div class="meta">${escapeHtml(u.email || '')}</div></span>
+      <span style="display:flex; align-items:center; gap:10px;">
+        ${avatarHtml(u, 'small')}
+        <span>${escapeHtml(u.name || '—')}<div class="meta">${u.username ? '@' + escapeHtml(u.username) + ' (lokal)' : escapeHtml(u.email || '')}</div></span>
+      </span>
       <select ${u.id === me.id ? 'disabled title="Eigene Rolle kann nicht geändert werden"' : ''} onchange="setUserRole('${u.id}', this.value)">
         ${['pending', 'viewer', 'editor', 'lead', 'admin'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${roleLabel(r)}</option>`).join('')}
       </select>
@@ -1634,13 +2069,24 @@ async function setUserRole(id, role) {
   if (id === me.id) return;
   await mutate(sb.from('profiles').update({ role }).eq('id', id));
 }
+function toggleNewUserLocal() {
+  const local = $('newUserLocal').checked;
+  $('newUserEmailField').style.display = local ? 'none' : '';
+  $('newUserUsernameField').style.display = local ? '' : 'none';
+}
 async function createUser() {
   const name = $('newUserName').value.trim();
-  const email = $('newUserEmail').value.trim();
+  const local = $('newUserLocal').checked;
+  const username = $('newUserUsername').value.trim();
+  const emailInput = $('newUserEmail').value.trim();
   const password = $('newUserPassword').value;
   const role = $('newUserRole').value;
-  if (!name || !email || !password) { toast('Bitte Name, E-Mail und Passwort angeben.', null, null, true); return; }
+  if (!name || !password || (local ? !username : !emailInput)) {
+    toast(local ? 'Bitte Name, Benutzername und Passwort angeben.' : 'Bitte Name, E-Mail und Passwort angeben.', null, null, true);
+    return;
+  }
   if (password.length < 6) { toast('Das Passwort braucht mindestens 6 Zeichen.', null, null, true); return; }
+  const email = local ? localEmailFor(username) : emailInput;
   const btn = $('createUserBtn'); btn.disabled = true;
   // Eigener, kurzlebiger Client, damit die Sitzung des Admins unberührt bleibt
   const tmp = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1650,13 +2096,42 @@ async function createUser() {
   btn.disabled = false;
   if (error) { toast('Fehler: ' + friendlyError(error), null, null, true); return; }
   if (!data.user || (data.user.identities && data.user.identities.length === 0)) {
-    toast('Diese E-Mail-Adresse ist bereits registriert.', null, null, true); return;
+    toast(local ? 'Dieser Benutzername ist bereits vergeben.' : 'Diese E-Mail-Adresse ist bereits registriert.', null, null, true); return;
   }
-  const { error: e2 } = await sb.from('profiles').update({ role, name }).eq('id', data.user.id);
+  const patch = { role, name };
+  if (local) patch.username = slugifyUsername(username);
+  const { error: e2 } = await sb.from('profiles').update(patch).eq('id', data.user.id);
   if (e2) { toast('Konto angelegt, Rolle konnte nicht gesetzt werden: ' + friendlyError(e2), null, null, true); }
   else toast(`Konto für ${name} angelegt.`);
-  $('newUserName').value = ''; $('newUserEmail').value = ''; $('newUserPassword').value = '';
+  $('newUserName').value = ''; $('newUserEmail').value = ''; $('newUserUsername').value = ''; $('newUserPassword').value = '';
   await refresh();
+}
+function renderSupplierAdminList() {
+  const suppliers = [...db.suppliers].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  $('supplierAdminList').innerHTML = suppliers.length ? suppliers.map(s => `
+    <div class="member-row">
+      <span>${escapeHtml(s.name)}</span>
+      <button class="icon-btn del" onclick="deleteSupplier('${s.id}', '${escapeJs(s.name)}')">✕</button>
+    </div>`).join('') : `<div style="color:var(--ink-faint); font-size:13.5px;">Noch keine Lieferanten angelegt.</div>`;
+}
+async function createSupplier() {
+  const input = $('newSupplierName');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const { error } = await sb.from('suppliers').insert({ name });
+  if (error) { toast(/duplicate|unique/i.test(error.message) ? 'Diesen Lieferanten gibt es schon.' : 'Fehler: ' + friendlyError(error), null, null, true); return; }
+  input.value = '';
+  await refresh();
+}
+function deleteSupplier(id, name) {
+  openConfirm(`Lieferant „${name}“ aus der Stammliste entfernen? Bereits eingetragene Zutaten behalten den Namen als Text.`,
+    () => mutate(sb.from('suppliers').delete().eq('id', id)), 'Entfernen');
+}
+async function saveVersion() {
+  const v = $('versionInput').value.trim();
+  if (!v) return;
+  await mutate(sb.from('app_settings').update({ version: v, updated_by: me.id, updated_at: new Date().toISOString() }).eq('id', 'main'));
+  toast('Version aktualisiert.');
 }
 function renderAllProjectsList() {
   const box = $('allProjectsList');
@@ -1770,6 +2245,35 @@ function exportCsv() {
   const csv = '\ufeff' + [t.head, ...t.rows].map(r => r.map(csvCell).join(';')).join('\r\n');
   downloadBlob(`${safeFileName(project.name)}-${t.name.toLowerCase()}.csv`, new Blob([csv], { type: 'text/csv;charset=utf-8' }));
 }
+/* ---------- Rezeptbild: client-seitig verkleinern, als Data-URL speichern ---------- */
+let rcImageData = null;
+function handleRecipeImage(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = () => {
+    img.onload = () => {
+      const maxSide = 900;
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      rcImageData = canvas.toDataURL('image/jpeg', 0.8);
+      showRecipeImagePreview(rcImageData);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function showRecipeImagePreview(dataUrl) {
+  if (dataUrl) { $('rcImagePreview').src = dataUrl; $('rcImagePreviewWrap').style.display = 'block'; }
+  else { $('rcImagePreviewWrap').style.display = 'none'; }
+}
+function removeRecipeImage() { rcImageData = null; showRecipeImagePreview(null); }
+
 function loadSheetJs() {
   return new Promise((resolve, reject) => {
     if (window.XLSX) return resolve();
@@ -1814,6 +2318,61 @@ function runConfirm() {
   const cb = pendingConfirm; pendingConfirm = null;
   if (cb) cb();
 }
+/* ================= MEIN PROFIL ================= */
+let profileAvatarData = undefined; // undefined = unverändert, null = entfernt, string = neues Bild
+function openProfileDialog() {
+  closeMobileNav();
+  profileAvatarData = undefined;
+  $('pfName').value = me.name || '';
+  $('pfAvatarPreview').outerHTML = avatarHtml(me).replace('class="avatar', 'id="pfAvatarPreview" class="avatar');
+  $('pfAvatarPreview').style.width = '56px'; $('pfAvatarPreview').style.height = '56px'; $('pfAvatarPreview').style.fontSize = '18px';
+  $('pfLoginInfo').value = me.username ? `@${me.username} (lokales Konto)` : me.email;
+  $('pfAvatarRemoveBtn').style.display = me.avatar ? '' : 'none';
+  profileDialog.showModal(); $('pfName').focus();
+}
+function handleProfileAvatar(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  resizeImageToDataUrl(file, 300, 0.85, dataUrl => {
+    profileAvatarData = dataUrl;
+    $('pfAvatarPreview').outerHTML = `<img id="pfAvatarPreview" class="avatar" style="width:56px; height:56px;" src="${dataUrl}">`;
+    $('pfAvatarRemoveBtn').style.display = '';
+  });
+}
+function removeProfileAvatar() {
+  profileAvatarData = null;
+  const initialsHtml = avatarHtml({ ...me, avatar: null }).replace('class="avatar', 'id="pfAvatarPreview" class="avatar');
+  $('pfAvatarPreview').outerHTML = initialsHtml;
+  $('pfAvatarPreview').style.width = '56px'; $('pfAvatarPreview').style.height = '56px'; $('pfAvatarPreview').style.fontSize = '18px';
+  $('pfAvatarRemoveBtn').style.display = 'none';
+}
+async function saveProfile() {
+  const name = $('pfName').value.trim();
+  if (!name) { $('pfName').focus(); return; }
+  const patch = { name };
+  if (profileAvatarData !== undefined) patch.avatar = profileAvatarData;
+  profileDialog.close();
+  await mutate(sb.from('profiles').update(patch).eq('id', me.id));
+}
+// Verkleinert ein Bild client-seitig und liefert es als komprimierte JPEG-Data-URL zurück.
+function resizeImageToDataUrl(file, maxSide, quality, cb) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale) || 1;
+      canvas.height = Math.round(img.height * scale) || 1;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      cb(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function openPasswordDialog(recovery) {
   if (passwordDialog.open) return;
   $('pwTitle').textContent = recovery ? 'Neues Passwort festlegen' : 'Passwort ändern';
